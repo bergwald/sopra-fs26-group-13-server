@@ -1,9 +1,5 @@
 # SoPra RESTful Service Template FS26
 
-## DEV Commands
-
-`build` + `bootRun` to build the app and launch a development server. The dev server run at `localhost:8080`.
-
 ## Getting started with Spring Boot
 -   Documentation: https://docs.spring.io/spring-boot/docs/current/reference/html/index.html
 -   Guides: http://spring.io/guides
