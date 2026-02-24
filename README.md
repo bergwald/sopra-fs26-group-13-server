@@ -76,9 +76,24 @@ userRepository.delete(user);
 userRepository.findAll(newUser);
 ```
 
-### Java SpringBoot REST API
+### Java Spring Boot REST API
 
-...
+**Spring** is a Java framework for building applications, especially backend/enterprise apps.
+
+**Spring Boot** is built on top of Spring and is meant to make starting and running Spring apps much faster.
+
+Spring Boot = Spring + sensible defaults + auto-setup
+
+Core idea of Spring: *dependency injection / inversion of control* (DI / IoC): Spring manages object creation and wiring.
+
+Classic Spring app structure:
+
+- **Controller**: HTTP layer; handles HTTP requests/responses.
+- **Service**: business logic, validation, transactions.
+- **Repository**: database interaction.
+- **Entity**: a class mapped to a database table.
+- **Data Transfer Object (DTO)**: class used to transfer data between layers, especially for API input/output.
+- **Mapper**: converts between types (usually Entity <-> DTO).
 
 ### Gradle
 
