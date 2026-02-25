@@ -61,6 +61,7 @@ public class UserServiceIntegrationTest {
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
+		assertNotNull(createdUser.getCreationDate());
 	}
 
 	@Test
@@ -77,6 +78,8 @@ public class UserServiceIntegrationTest {
 		assertEquals(createdUser.getUsername(), foundUser.getUsername());
 		assertEquals(createdUser.getBio(), foundUser.getBio());
 		assertEquals(createdUser.getStatus(), foundUser.getStatus());
+		assertNotNull(foundUser.getCreationDate());
+		assertEquals(createdUser.getCreationDate(), foundUser.getCreationDate());
 	}
 
 	@Test

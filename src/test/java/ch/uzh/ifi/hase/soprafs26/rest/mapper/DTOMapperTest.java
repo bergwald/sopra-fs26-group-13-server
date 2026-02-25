@@ -6,7 +6,10 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
+
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -73,5 +76,25 @@ public class DTOMapperTest {
 		assertEquals(user.getBio(), registerResponseDTO.getBio());
 		assertEquals(user.getStatus(), registerResponseDTO.getStatus());
 		assertEquals(user.getToken(), registerResponseDTO.getToken());
+	}
+
+	@Test
+	public void testGetUserProfile_fromUser_toUserProfileGetDTO_success() {
+		User user = new User();
+		user.setId(1L);
+		user.setName("Firstname Lastname");
+		user.setUsername("firstname@lastname");
+		user.setBio("Hello from bio");
+		user.setStatus(UserStatus.ONLINE);
+		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
+
+		UserProfileGetDTO userProfileGetDTO = DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
+
+		assertEquals(user.getId(), userProfileGetDTO.getId());
+		assertEquals(user.getName(), userProfileGetDTO.getName());
+		assertEquals(user.getUsername(), userProfileGetDTO.getUsername());
+		assertEquals(user.getBio(), userProfileGetDTO.getBio());
+		assertEquals(user.getStatus(), userProfileGetDTO.getStatus());
+		assertEquals(user.getCreationDate(), userProfileGetDTO.getCreationDate());
 	}
 }

@@ -14,6 +14,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +39,7 @@ public class UserServiceTest {
 		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
 		testUser.setBio("Short bio");
+		testUser.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 
 		// when -> any object is being save in the userRepository -> return the dummy
 		// testUser
@@ -61,6 +63,7 @@ public class UserServiceTest {
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
+		assertNotNull(createdUser.getCreationDate());
 	}
 
 	@Test
@@ -74,6 +77,7 @@ public class UserServiceTest {
 		assertEquals(testUser.getName(), foundUser.getName());
 		assertEquals(testUser.getUsername(), foundUser.getUsername());
 		assertEquals(testUser.getBio(), foundUser.getBio());
+		assertEquals(testUser.getCreationDate(), foundUser.getCreationDate());
 	}
 
 	@Test

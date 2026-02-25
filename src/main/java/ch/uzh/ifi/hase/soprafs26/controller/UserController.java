@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
@@ -47,9 +48,9 @@ public class UserController {
 	@GetMapping("/users/{userId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public UserGetDTO getUserById(@PathVariable("userId") Long userId) {
+	public UserProfileGetDTO getUserById(@PathVariable("userId") Long userId) {
 		User user = userService.getUserById(userId);
-		return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+		return DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
 	}
 
 	@PostMapping("/users")

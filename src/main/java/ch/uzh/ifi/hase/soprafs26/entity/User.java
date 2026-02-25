@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * Internal User Representation
@@ -43,6 +46,10 @@ public class User implements Serializable {
 
 	@Column(nullable = false)
 	private UserStatus status;
+
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private Instant creationDate;
 
 	public Long getId() {
 		return id;
@@ -98,5 +105,13 @@ public class User implements Serializable {
 
 	public void setStatus(UserStatus status) {
 		this.status = status;
+	}
+
+	public Instant getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Instant creationDate) {
+		this.creationDate = creationDate;
 	}
 }
