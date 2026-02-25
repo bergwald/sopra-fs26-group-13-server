@@ -83,6 +83,57 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
+	public void loginUser_validCredentials_success() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		userService.createUser(testUser, "password123");
+
+		User loggedInUser = userService.loginUser("testUsername", "password123");
+		assertEquals("testUsername", loggedInUser.getUsername());
+		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
+		assertNotNull(loggedInUser.getToken());
+	}
+
+	@Test
+	public void loginUser_invalidCredentials_throwsUnauthorized() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		userService.createUser(testUser, "password123");
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.loginUser("testUsername", "wrongPassword"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void logoutUser_validToken_success() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "password123");
+		String oldToken = createdUser.getToken();
+
+		userService.logoutUser(oldToken);
+
+		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
+		assertEquals(UserStatus.OFFLINE, updatedUser.getStatus());
+		assertNotEquals(oldToken, updatedUser.getToken());
+		assertNull(userRepository.findByToken(oldToken));
+	}
+
+	@Test
+	public void logoutUser_invalidToken_throwsUnauthorized() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.logoutUser("invalid-token"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
 	public void getUserById_userDoesNotExist_throwsNotFoundException() {
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.getUserById(999L));
 		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());

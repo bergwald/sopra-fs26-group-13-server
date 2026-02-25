@@ -2,9 +2,11 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
@@ -64,5 +66,33 @@ public class UserController {
 		User createdUser = userService.createUser(userInput, userPostDTO.getPassword());
 		// convert internal representation of user back to API
 		return DTOMapper.INSTANCE.convertEntityToUserRegisterResponseDTO(createdUser);
+	}
+
+	@PostMapping("/login")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public UserRegisterResponseDTO loginUser(@RequestBody UserLoginDTO userLoginDTO) {
+		User loggedInUser = userService.loginUser(userLoginDTO.getUsername(), userLoginDTO.getPassword());
+		return DTOMapper.INSTANCE.convertEntityToUserRegisterResponseDTO(loggedInUser);
+	}
+
+	@PostMapping("/logout")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void logoutUser(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+		String token = extractBearerToken(authorizationHeader);
+		userService.logoutUser(token);
+	}
+
+	private String extractBearerToken(String authorizationHeader) {
+		String bearerPrefix = "Bearer ";
+		if (authorizationHeader == null || authorizationHeader.isBlank() || !authorizationHeader.startsWith(bearerPrefix)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		String token = authorizationHeader.substring(bearerPrefix.length()).trim();
+		if (token.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+		return token;
 	}
 }

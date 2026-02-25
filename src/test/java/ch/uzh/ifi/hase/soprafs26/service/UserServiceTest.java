@@ -39,12 +39,15 @@ public class UserServiceTest {
 		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
 		testUser.setBio("Short bio");
+		testUser.setToken("valid-token");
+		testUser.setStatus(UserStatus.OFFLINE);
 		testUser.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 
 		// when -> any object is being save in the userRepository -> return the dummy
 		// testUser
 		Mockito.when(userRepository.save(Mockito.any())).thenReturn(testUser);
 		Mockito.when(userRepository.findByUsername(Mockito.any())).thenReturn(null);
+		Mockito.when(userRepository.findByToken(Mockito.any())).thenReturn(null);
 	}
 
 	@Test
@@ -64,6 +67,60 @@ public class UserServiceTest {
 		assertNotNull(createdUser.getToken());
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 		assertNotNull(createdUser.getCreationDate());
+	}
+
+	@Test
+	public void loginUser_validCredentials_success() {
+		String rawPassword = "password123";
+		testUser.setPasswordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt()));
+		Mockito.when(userRepository.findByUsername("testUsername")).thenReturn(testUser);
+
+		User loggedInUser = userService.loginUser("testUsername", rawPassword);
+
+		Mockito.verify(userRepository, Mockito.times(1)).save(testUser);
+		Mockito.verify(userRepository, Mockito.times(1)).flush();
+		assertEquals(testUser.getId(), loggedInUser.getId());
+		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
+	}
+
+	@Test
+	public void loginUser_userNotFound_throwsUnauthorized() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.loginUser("unknownUser", "password123"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void loginUser_wrongPassword_throwsUnauthorized() {
+		testUser.setPasswordHash(BCrypt.hashpw("password123", BCrypt.gensalt()));
+		Mockito.when(userRepository.findByUsername("testUsername")).thenReturn(testUser);
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.loginUser("testUsername", "wrongPassword"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void logoutUser_validToken_success() {
+		String oldToken = "valid-token";
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		testUser.setStatus(UserStatus.ONLINE);
+		testUser.setToken(oldToken);
+
+		userService.logoutUser(oldToken);
+
+		Mockito.verify(userRepository, Mockito.times(1)).save(testUser);
+		Mockito.verify(userRepository, Mockito.times(1)).flush();
+		assertEquals(UserStatus.OFFLINE, testUser.getStatus());
+		assertNotNull(testUser.getToken());
+		assertNotEquals(oldToken, testUser.getToken());
+	}
+
+	@Test
+	public void logoutUser_invalidToken_throwsUnauthorized() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.logoutUser("invalid-token"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 	}
 
 	@Test

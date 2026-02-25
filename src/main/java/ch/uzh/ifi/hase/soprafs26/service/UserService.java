@@ -62,6 +62,38 @@ public class UserService {
 		return newUser;
 	}
 
+	public User loginUser(String username, String rawPassword) {
+		if (username == null || username.isBlank() || rawPassword == null || rawPassword.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password provided is incorrect.");
+		}
+
+		User user = userRepository.findByUsername(username.trim());
+		if (user == null || !BCrypt.checkpw(rawPassword, user.getPasswordHash())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password provided is incorrect.");
+		}
+
+		user.setStatus(UserStatus.ONLINE);
+		userRepository.save(user);
+		userRepository.flush();
+		return user;
+	}
+
+	public void logoutUser(String token) {
+		if (token == null || token.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		User user = userRepository.findByToken(token);
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		user.setStatus(UserStatus.OFFLINE);
+		user.setToken(UUID.randomUUID().toString());
+		userRepository.save(user);
+		userRepository.flush();
+	}
+
 	/**
 	 * This helper validates required input for registration.
 	 *
