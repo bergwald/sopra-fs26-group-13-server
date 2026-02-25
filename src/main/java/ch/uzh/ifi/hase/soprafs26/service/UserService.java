@@ -41,6 +41,12 @@ public class UserService {
 		return this.userRepository.findAll();
 	}
 
+	public User getUserById(Long userId) {
+		return this.userRepository.findById(userId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						String.format("User with id %d was not found.", userId)));
+	}
+
 	public User createUser(User newUser, String rawPassword) {
 		validateRegistrationInput(newUser, rawPassword);
 		checkIfUsernameExists(newUser.getUsername());

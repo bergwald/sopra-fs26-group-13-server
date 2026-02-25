@@ -14,6 +14,8 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTest {
@@ -59,6 +61,28 @@ public class UserServiceTest {
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
 		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
+	}
+
+	@Test
+	public void getUserById_validId_success() {
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		User foundUser = userService.getUserById(1L);
+
+		Mockito.verify(userRepository, Mockito.times(1)).findById(1L);
+		assertEquals(testUser.getId(), foundUser.getId());
+		assertEquals(testUser.getName(), foundUser.getName());
+		assertEquals(testUser.getUsername(), foundUser.getUsername());
+		assertEquals(testUser.getBio(), foundUser.getBio());
+	}
+
+	@Test
+	public void getUserById_userDoesNotExist_throwsNotFoundException() {
+		Mockito.when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.getUserById(999L));
+		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+		assertEquals("User with id 999 was not found.", exception.getReason());
 	}
 
 	@Test

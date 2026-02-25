@@ -64,6 +64,29 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
+	public void getUserById_validId_success() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "password123");
+
+		User foundUser = userService.getUserById(createdUser.getId());
+		assertEquals(createdUser.getId(), foundUser.getId());
+		assertEquals(createdUser.getName(), foundUser.getName());
+		assertEquals(createdUser.getUsername(), foundUser.getUsername());
+		assertEquals(createdUser.getBio(), foundUser.getBio());
+		assertEquals(createdUser.getStatus(), foundUser.getStatus());
+	}
+
+	@Test
+	public void getUserById_userDoesNotExist_throwsNotFoundException() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.getUserById(999L));
+		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+		assertEquals("User with id 999 was not found.", exception.getReason());
+	}
+
+	@Test
 	public void createUser_duplicateUsername_throwsException() {
 		assertNull(userRepository.findByUsername("testUsername"));
 
