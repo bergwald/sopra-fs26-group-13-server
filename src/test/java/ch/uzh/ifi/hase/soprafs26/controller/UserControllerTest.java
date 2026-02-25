@@ -78,14 +78,16 @@ public class UserControllerTest {
 		user.setId(1L);
 		user.setName("Test User");
 		user.setUsername("testUsername");
+		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
 		user.setToken("1");
 		user.setStatus(UserStatus.ONLINE);
 
 		UserPostDTO userPostDTO = new UserPostDTO();
 		userPostDTO.setName("Test User");
 		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("password123");
 
-		given(userService.createUser(Mockito.any())).willReturn(user);
+		given(userService.createUser(Mockito.any(), Mockito.anyString())).willReturn(user);
 
 		// when/then -> do the request + validate the result
 		MockHttpServletRequestBuilder postRequest = post("/users")
@@ -98,13 +100,69 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(user.getId().intValue())))
 				.andExpect(jsonPath("$.name", is(user.getName())))
 				.andExpect(jsonPath("$.username", is(user.getUsername())))
-				.andExpect(jsonPath("$.status", is(user.getStatus().toString())));
+				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
+				.andExpect(jsonPath("$.token", is(user.getToken())));
+	}
+
+	@Test
+	public void createUser_shortPassword_badRequest() throws Exception {
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setName("Test User");
+		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("short");
+
+		given(userService.createUser(Mockito.any(), Mockito.anyString()))
+				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."));
+
+		MockHttpServletRequestBuilder postRequest = post("/users")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void createUser_duplicateUsername_conflict() throws Exception {
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setName("Test User");
+		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("password123");
+
+		given(userService.createUser(Mockito.any(), Mockito.anyString()))
+				.willThrow(new ResponseStatusException(HttpStatus.CONFLICT, "The username provided is not unique."));
+
+		MockHttpServletRequestBuilder postRequest = post("/users")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isConflict());
+	}
+
+	@Test
+	public void createUser_blankName_badRequest() throws Exception {
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setName(" ");
+		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("password123");
+
+		given(userService.createUser(Mockito.any(), Mockito.anyString()))
+				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name must not be empty."));
+
+		MockHttpServletRequestBuilder postRequest = post("/users")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isBadRequest());
 	}
 
 	/**
 	 * Helper Method to convert userPostDTO into a JSON string such that the input
 	 * can be processed
-	 * Input will look like this: {"name": "Test User", "username": "testUsername"}
+	 * Input will look like this:
+	 * {"name":"Test User", "username":"testUsername", "password":"password123"}
 	 * 
 	 * @param object
 	 * @return string

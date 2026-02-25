@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,10 +39,12 @@ public class UserService {
 		return this.userRepository.findAll();
 	}
 
-	public User createUser(User newUser) {
+	public User createUser(User newUser, String rawPassword) {
+		validateRegistrationInput(newUser, rawPassword);
+		checkIfUsernameExists(newUser.getUsername());
+		newUser.setPasswordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt()));
 		newUser.setToken(UUID.randomUUID().toString());
-		newUser.setStatus(UserStatus.OFFLINE);
-		checkIfUserExists(newUser);
+		newUser.setStatus(UserStatus.ONLINE);
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -52,27 +55,50 @@ public class UserService {
 	}
 
 	/**
-	 * This is a helper method that will check the uniqueness criteria of the
-	 * username and the name
-	 * defined in the User entity. The method will do nothing if the input is unique
-	 * and throw an error otherwise.
+	 * This helper validates required input for registration.
 	 *
 	 * @param userToBeCreated
+	 * @param rawPassword
+	 */
+	private void validateRegistrationInput(User userToBeCreated, String rawPassword) {
+		if (userToBeCreated == null || userToBeCreated.getUsername() == null || userToBeCreated.getUsername().isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username must not be empty.");
+		}
+
+		if (userToBeCreated.getName() == null || userToBeCreated.getName().isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name must not be empty.");
+		}
+
+		userToBeCreated.setName(userToBeCreated.getName().trim());
+		if (userToBeCreated.getName().isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name must not be empty.");
+		}
+
+		userToBeCreated.setUsername(userToBeCreated.getUsername().trim());
+		if (userToBeCreated.getUsername().isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username must not be empty.");
+		}
+
+		if (rawPassword == null || rawPassword.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must not be empty.");
+		}
+
+		if (rawPassword.length() < 8) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
+		}
+	}
+
+	/**
+	 * This helper checks the username uniqueness criteria.
+	 *
+	 * @param username
 	 * @throws org.springframework.web.server.ResponseStatusException
 	 * @see User
 	 */
-	private void checkIfUserExists(User userToBeCreated) {
-		User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-		User userByName = userRepository.findByName(userToBeCreated.getName());
-
-		String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-		if (userByUsername != null && userByName != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					String.format(baseErrorMessage, "username and the name", "are"));
-		} else if (userByUsername != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-		} else if (userByName != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
+	private void checkIfUsernameExists(String username) {
+		User existingUser = userRepository.findByUsername(username);
+		if (existingUser != null) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "The username provided is not unique.");
 		}
 	}
 }

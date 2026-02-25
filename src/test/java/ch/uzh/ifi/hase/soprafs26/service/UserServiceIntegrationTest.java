@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -41,18 +43,22 @@ public class UserServiceIntegrationTest {
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
-		testUser.setName("testName");
+		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
+		String rawPassword = "password123";
 
 		// when
-		User createdUser = userService.createUser(testUser);
+		User createdUser = userService.createUser(testUser, rawPassword);
 
 		// then
 		assertEquals(testUser.getId(), createdUser.getId());
 		assertEquals(testUser.getName(), createdUser.getName());
 		assertEquals(testUser.getUsername(), createdUser.getUsername());
+		assertNotNull(createdUser.getPasswordHash());
+		assertNotEquals(rawPassword, createdUser.getPasswordHash());
+		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
-		assertEquals(UserStatus.OFFLINE, createdUser.getStatus());
+		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 	}
 
 	@Test
@@ -60,18 +66,38 @@ public class UserServiceIntegrationTest {
 		assertNull(userRepository.findByUsername("testUsername"));
 
 		User testUser = new User();
-		testUser.setName("testName");
+		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
-		userService.createUser(testUser);
+		userService.createUser(testUser, "password123");
 
 		// attempt to create second user with same username
 		User testUser2 = new User();
-
-		// change the name but forget about the username
-		testUser2.setName("testName2");
+		testUser2.setName("Another Name");
 		testUser2.setUsername("testUsername");
 
 		// check that an error is thrown
-		assertThrows(ResponseStatusException.class, () -> userService.createUser(testUser2));
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser2, "password123"));
+		assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+	}
+
+	@Test
+	public void createUser_shortPassword_throwsException() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, "short"));
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
+	public void createUser_blankName_throwsException() {
+		User testUser = new User();
+		testUser.setName(" ");
+		testUser.setUsername("testUsername");
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, "password123"));
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 }
