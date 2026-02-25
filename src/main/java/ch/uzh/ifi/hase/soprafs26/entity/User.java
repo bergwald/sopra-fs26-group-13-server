@@ -32,6 +32,9 @@ public class User implements Serializable {
 	@Column(nullable = false, unique = true)
 	private String username;
 
+	@Column(nullable = false, length = 280)
+	private String bio;
+
 	@Column(nullable = false)
 	private String passwordHash;
 
@@ -63,6 +66,14 @@ public class User implements Serializable {
 
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public String getBio() {
+		return bio;
+	}
+
+	public void setBio(String bio) {
+		this.bio = bio;
 	}
 
 	public String getPasswordHash() {

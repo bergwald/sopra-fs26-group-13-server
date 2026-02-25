@@ -7,6 +7,7 @@ public class UserRegisterResponseDTO {
 	private Long id;
 	private String name;
 	private String username;
+	private String bio;
 	private UserStatus status;
 	private String token;
 
@@ -32,6 +33,14 @@ public class UserRegisterResponseDTO {
 
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public String getBio() {
+		return bio;
+	}
+
+	public void setBio(String bio) {
+		this.bio = bio;
 	}
 
 	public UserStatus getStatus() {

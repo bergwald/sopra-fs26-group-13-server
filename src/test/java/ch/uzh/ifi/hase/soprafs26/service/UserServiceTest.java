@@ -35,6 +35,7 @@ public class UserServiceTest {
 		testUser.setId(1L);
 		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
 
 		// when -> any object is being save in the userRepository -> return the dummy
 		// testUser
@@ -52,6 +53,7 @@ public class UserServiceTest {
 		assertEquals(testUser.getId(), createdUser.getId());
 		assertEquals(testUser.getName(), createdUser.getName());
 		assertEquals(testUser.getUsername(), createdUser.getUsername());
+		assertEquals(testUser.getBio(), createdUser.getBio());
 		assertNotNull(createdUser.getPasswordHash());
 		assertNotEquals(rawPassword, createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
@@ -88,6 +90,35 @@ public class UserServiceTest {
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
 				() -> userService.createUser(testUser, "password123"));
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
+	public void createUser_nullBio_defaultsToEmptyString() {
+		testUser.setBio(null);
+		User createdUser = userService.createUser(testUser, "password123");
+		assertEquals("", createdUser.getBio());
+	}
+
+	@Test
+	public void createUser_whitespaceBio_defaultsToEmptyString() {
+		testUser.setBio("   ");
+		User createdUser = userService.createUser(testUser, "password123");
+		assertEquals("", createdUser.getBio());
+	}
+
+	@Test
+	public void createUser_tooLongBio_throwsException() {
+		testUser.setBio("a".repeat(281));
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, "password123"));
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
+	public void createUser_exactMaxBioLength_success() {
+		testUser.setBio("a".repeat(280));
+		User createdUser = userService.createUser(testUser, "password123");
+		assertEquals(280, createdUser.getBio().length());
 	}
 
 }

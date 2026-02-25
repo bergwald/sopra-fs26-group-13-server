@@ -52,6 +52,7 @@ public class UserControllerTest {
 		User user = new User();
 		user.setName("Firstname Lastname");
 		user.setUsername("firstname@lastname");
+		user.setBio("Short bio");
 		user.setStatus(UserStatus.OFFLINE);
 
 		List<User> allUsers = Collections.singletonList(user);
@@ -68,6 +69,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$", hasSize(1)))
 				.andExpect(jsonPath("$[0].name", is(user.getName())))
 				.andExpect(jsonPath("$[0].username", is(user.getUsername())))
+				.andExpect(jsonPath("$[0].bio", is(user.getBio())))
 				.andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
 	}
 
@@ -78,6 +80,7 @@ public class UserControllerTest {
 		user.setId(1L);
 		user.setName("Test User");
 		user.setUsername("testUsername");
+		user.setBio("I love coding.");
 		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
 		user.setToken("1");
 		user.setStatus(UserStatus.ONLINE);
@@ -86,6 +89,7 @@ public class UserControllerTest {
 		userPostDTO.setName("Test User");
 		userPostDTO.setUsername("testUsername");
 		userPostDTO.setPassword("password123");
+		userPostDTO.setBio("I love coding.");
 
 		given(userService.createUser(Mockito.any(), Mockito.anyString())).willReturn(user);
 
@@ -100,8 +104,37 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(user.getId().intValue())))
 				.andExpect(jsonPath("$.name", is(user.getName())))
 				.andExpect(jsonPath("$.username", is(user.getUsername())))
+				.andExpect(jsonPath("$.bio", is(user.getBio())))
 				.andExpect(jsonPath("$.status", is(user.getStatus().toString())))
 				.andExpect(jsonPath("$.token", is(user.getToken())));
+	}
+
+	@Test
+	public void createUser_missingBio_defaultsToEmptyString() throws Exception {
+		User user = new User();
+		user.setId(1L);
+		user.setName("Test User");
+		user.setUsername("testUsername");
+		user.setBio("");
+		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
+		user.setToken("1");
+		user.setStatus(UserStatus.ONLINE);
+
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setName("Test User");
+		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("password123");
+		// bio intentionally omitted
+
+		given(userService.createUser(Mockito.any(), Mockito.anyString())).willReturn(user);
+
+		MockHttpServletRequestBuilder postRequest = post("/users")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.bio", is("")));
 	}
 
 	@Test
@@ -110,6 +143,7 @@ public class UserControllerTest {
 		userPostDTO.setName("Test User");
 		userPostDTO.setUsername("testUsername");
 		userPostDTO.setPassword("short");
+		userPostDTO.setBio("Short bio");
 
 		given(userService.createUser(Mockito.any(), Mockito.anyString()))
 				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."));
@@ -128,6 +162,7 @@ public class UserControllerTest {
 		userPostDTO.setName("Test User");
 		userPostDTO.setUsername("testUsername");
 		userPostDTO.setPassword("password123");
+		userPostDTO.setBio("Short bio");
 
 		given(userService.createUser(Mockito.any(), Mockito.anyString()))
 				.willThrow(new ResponseStatusException(HttpStatus.CONFLICT, "The username provided is not unique."));
@@ -146,9 +181,29 @@ public class UserControllerTest {
 		userPostDTO.setName(" ");
 		userPostDTO.setUsername("testUsername");
 		userPostDTO.setPassword("password123");
+		userPostDTO.setBio("Short bio");
 
 		given(userService.createUser(Mockito.any(), Mockito.anyString()))
 				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name must not be empty."));
+
+		MockHttpServletRequestBuilder postRequest = post("/users")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPostDTO));
+
+		mockMvc.perform(postRequest)
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void createUser_tooLongBio_badRequest() throws Exception {
+		UserPostDTO userPostDTO = new UserPostDTO();
+		userPostDTO.setName("Test User");
+		userPostDTO.setUsername("testUsername");
+		userPostDTO.setPassword("password123");
+		userPostDTO.setBio("a".repeat(281));
+
+		given(userService.createUser(Mockito.any(), Mockito.anyString()))
+				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The bio must be at most 280 characters long."));
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -162,7 +217,7 @@ public class UserControllerTest {
 	 * Helper Method to convert userPostDTO into a JSON string such that the input
 	 * can be processed
 	 * Input will look like this:
-	 * {"name":"Test User", "username":"testUsername", "password":"password123"}
+	 * {"name":"Test User", "username":"testUsername", "password":"password123", "bio":"Short bio"}
 	 * 
 	 * @param object
 	 * @return string

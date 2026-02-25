@@ -45,6 +45,7 @@ public class UserServiceIntegrationTest {
 		User testUser = new User();
 		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
 		String rawPassword = "password123";
 
 		// when
@@ -54,6 +55,7 @@ public class UserServiceIntegrationTest {
 		assertEquals(testUser.getId(), createdUser.getId());
 		assertEquals(testUser.getName(), createdUser.getName());
 		assertEquals(testUser.getUsername(), createdUser.getUsername());
+		assertEquals(testUser.getBio(), createdUser.getBio());
 		assertNotNull(createdUser.getPasswordHash());
 		assertNotEquals(rawPassword, createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
@@ -68,12 +70,14 @@ public class UserServiceIntegrationTest {
 		User testUser = new User();
 		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
 		userService.createUser(testUser, "password123");
 
 		// attempt to create second user with same username
 		User testUser2 = new User();
 		testUser2.setName("Another Name");
 		testUser2.setUsername("testUsername");
+		testUser2.setBio("Another bio");
 
 		// check that an error is thrown
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
@@ -86,6 +90,7 @@ public class UserServiceIntegrationTest {
 		User testUser = new User();
 		testUser.setName("Test User");
 		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
 				() -> userService.createUser(testUser, "short"));
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -96,6 +101,27 @@ public class UserServiceIntegrationTest {
 		User testUser = new User();
 		testUser.setName(" ");
 		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, "password123"));
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
+	public void createUser_nullBio_defaultsToEmptyString() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		User createdUser = userService.createUser(testUser, "password123");
+		assertEquals("", createdUser.getBio());
+	}
+
+	@Test
+	public void createUser_tooLongBio_throwsException() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("a".repeat(281));
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
 				() -> userService.createUser(testUser, "password123"));
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());

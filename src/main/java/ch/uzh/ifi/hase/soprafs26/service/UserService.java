@@ -27,6 +27,8 @@ import java.util.UUID;
 @Transactional
 public class UserService {
 
+	private static final int MAX_BIO_LENGTH = 280;
+
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
 	private final UserRepository userRepository;
@@ -86,6 +88,20 @@ public class UserService {
 		if (rawPassword.length() < 8) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
 		}
+
+		String normalizedBio = normalizeBio(userToBeCreated.getBio());
+		if (normalizedBio.length() > MAX_BIO_LENGTH) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("The bio must be at most %d characters long.", MAX_BIO_LENGTH));
+		}
+		userToBeCreated.setBio(normalizedBio);
+	}
+
+	private String normalizeBio(String bio) {
+		if (bio == null) {
+			return "";
+		}
+		return bio.trim();
 	}
 
 	/**
