@@ -28,6 +28,7 @@ import java.util.UUID;
 public class UserService {
 
 	private static final int MAX_BIO_LENGTH = 280;
+	private static final int MIN_PASSWORD_LENGTH = 8;
 
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -94,6 +95,37 @@ public class UserService {
 		userRepository.flush();
 	}
 
+	public void changePassword(Long targetUserId, String requesterToken, String newPassword) {
+		// First, validate the token (to avoid leaking whether a user ID exists to unauthenticated users)
+		if (requesterToken == null || requesterToken.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		User requester = userRepository.findByToken(requesterToken);
+		if (requester == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		// Secondly, check if the user exists and return 404 otherwise (according to the spec of M1)
+		User targetUser = userRepository.findById(targetUserId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						String.format("User with id %d was not found.", targetUserId)));
+
+		// Then, enforce ownership: requester ID must equal target ID
+		if (!requester.getId().equals(targetUser.getId())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only change your own password.");
+		}
+
+		// Finally, validate password and save the new password
+		validateNewPassword(newPassword);
+
+		targetUser.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+		targetUser.setStatus(UserStatus.OFFLINE);
+		targetUser.setToken(UUID.randomUUID().toString());
+		userRepository.save(targetUser);
+		userRepository.flush();
+	}
+
 	/**
 	 * This helper validates required input for registration.
 	 *
@@ -123,7 +155,7 @@ public class UserService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must not be empty.");
 		}
 
-		if (rawPassword.length() < 8) {
+		if (rawPassword.length() < MIN_PASSWORD_LENGTH) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
 		}
 
@@ -140,6 +172,16 @@ public class UserService {
 			return "";
 		}
 		return bio.trim();
+	}
+
+	private void validateNewPassword(String newPassword) {
+		if (newPassword == null || newPassword.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must not be empty.");
+		}
+
+		if (newPassword.length() < MIN_PASSWORD_LENGTH) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
+		}
 	}
 
 	/**
