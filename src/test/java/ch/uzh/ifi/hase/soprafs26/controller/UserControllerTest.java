@@ -8,6 +8,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPasswordPutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -228,6 +230,93 @@ public class UserControllerTest {
 				.header("Authorization", "Bearer unknown-token");
 
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	public void changePassword_validRequest_noContent() throws Exception {
+		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
+		userPasswordPutDTO.setNewPassword("newPassword123");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userPasswordPutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isNoContent());
+		Mockito.verify(userService).changePassword(1L, "valid-token", "newPassword123");
+	}
+
+	@Test
+	public void changePassword_missingAuthorizationHeader_unauthorized() throws Exception {
+		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
+		userPasswordPutDTO.setNewPassword("newPassword123");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userPasswordPutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	public void changePassword_malformedAuthorizationHeader_unauthorized() throws Exception {
+		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
+		userPasswordPutDTO.setNewPassword("newPassword123");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "invalid-token")
+				.content(asJsonString(userPasswordPutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	public void changePassword_tokenUserMismatch_unauthorized() throws Exception {
+		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
+		userPasswordPutDTO.setNewPassword("newPassword123");
+
+		willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only change your own password."))
+				.given(userService).changePassword(2L, "valid-token", "newPassword123");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 2L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userPasswordPutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	public void changePassword_targetUserNotFound_notFound() throws Exception {
+		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
+		userPasswordPutDTO.setNewPassword("newPassword123");
+
+		willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id 999 was not found."))
+				.given(userService).changePassword(999L, "valid-token", "newPassword123");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 999L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userPasswordPutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isNotFound());
+	}
+
+	@Test
+	public void changePassword_shortPassword_badRequest() throws Exception {
+		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
+		userPasswordPutDTO.setNewPassword("short");
+
+		willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."))
+				.given(userService).changePassword(1L, "valid-token", "short");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userPasswordPutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
 
 	@Test

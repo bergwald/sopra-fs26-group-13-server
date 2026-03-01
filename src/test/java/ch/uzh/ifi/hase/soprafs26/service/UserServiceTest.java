@@ -124,6 +124,73 @@ public class UserServiceTest {
 	}
 
 	@Test
+	public void changePassword_validRequest_success() {
+		String oldToken = "valid-token";
+		String newPassword = "newPassword123";
+		testUser.setStatus(UserStatus.ONLINE);
+		testUser.setToken(oldToken);
+		testUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
+
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		userService.changePassword(1L, oldToken, newPassword);
+
+		Mockito.verify(userRepository, Mockito.times(1)).save(testUser);
+		Mockito.verify(userRepository, Mockito.times(1)).flush();
+		assertEquals(UserStatus.OFFLINE, testUser.getStatus());
+		assertNotEquals(oldToken, testUser.getToken());
+		assertTrue(BCrypt.checkpw(newPassword, testUser.getPasswordHash()));
+	}
+
+	@Test
+	public void changePassword_invalidToken_throwsUnauthorized() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.changePassword(1L, "invalid-token", "newPassword123"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+		Mockito.verify(userRepository, Mockito.never()).findById(Mockito.anyLong());
+	}
+
+	@Test
+	public void changePassword_targetUserNotFound_throwsNotFound() {
+		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
+		Mockito.when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.changePassword(999L, "valid-token", "newPassword123"));
+		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+	}
+
+	@Test
+	public void changePassword_tokenUserMismatch_throwsUnauthorized() {
+		User otherUser = new User();
+		otherUser.setId(2L);
+		otherUser.setUsername("otherUser");
+		otherUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
+		otherUser.setToken("other-token");
+		otherUser.setStatus(UserStatus.ONLINE);
+		otherUser.setBio("bio");
+		otherUser.setName("Other User");
+
+		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
+		Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(otherUser));
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.changePassword(2L, "valid-token", "newPassword123"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void changePassword_shortPassword_throwsBadRequest() {
+		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.changePassword(1L, "valid-token", "short"));
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
 	public void getUserById_validId_success() {
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 

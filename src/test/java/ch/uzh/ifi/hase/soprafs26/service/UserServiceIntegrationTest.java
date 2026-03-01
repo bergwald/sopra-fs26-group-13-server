@@ -134,6 +134,63 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
+	public void changePassword_validRequest_success() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "oldPassword123");
+		String oldToken = createdUser.getToken();
+
+		userService.changePassword(createdUser.getId(), oldToken, "newPassword123");
+
+		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
+		assertEquals(UserStatus.OFFLINE, updatedUser.getStatus());
+		assertNotEquals(oldToken, updatedUser.getToken());
+		assertNull(userRepository.findByToken(oldToken));
+		assertTrue(BCrypt.checkpw("newPassword123", updatedUser.getPasswordHash()));
+
+		ResponseStatusException oldPasswordLoginException = assertThrows(ResponseStatusException.class,
+				() -> userService.loginUser("testUsername", "oldPassword123"));
+		assertEquals(HttpStatus.UNAUTHORIZED, oldPasswordLoginException.getStatusCode());
+
+		User loggedInWithNewPassword = userService.loginUser("testUsername", "newPassword123");
+		assertEquals("testUsername", loggedInWithNewPassword.getUsername());
+	}
+
+	@Test
+	public void changePassword_targetUserNotFound_throwsNotFound() {
+		User testUser = new User();
+		testUser.setName("Test User");
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "oldPassword123");
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.changePassword(999L, createdUser.getToken(), "newPassword123"));
+		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+	}
+
+	@Test
+	public void changePassword_tokenUserMismatch_throwsUnauthorized() {
+		User userOne = new User();
+		userOne.setName("User One");
+		userOne.setUsername("userOne");
+		userOne.setBio("One");
+		User createdUserOne = userService.createUser(userOne, "password123");
+
+		User userTwo = new User();
+		userTwo.setName("User Two");
+		userTwo.setUsername("userTwo");
+		userTwo.setBio("Two");
+		User createdUserTwo = userService.createUser(userTwo, "password123");
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.changePassword(createdUserTwo.getId(), createdUserOne.getToken(), "newPassword123"));
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
 	public void getUserById_userDoesNotExist_throwsNotFoundException() {
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.getUserById(999L));
 		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
