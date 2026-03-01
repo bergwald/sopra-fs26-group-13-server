@@ -8,6 +8,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPasswordPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
@@ -81,6 +82,15 @@ public class UserController {
 	public void logoutUser(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
 		String token = extractBearerToken(authorizationHeader);
 		userService.logoutUser(token);
+	}
+
+	@PutMapping("/users/{userId}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void changePassword(@PathVariable("userId") Long userId,
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestBody UserPasswordPutDTO userPasswordPutDTO) {
+		String token = extractBearerToken(authorizationHeader);
+		userService.changePassword(userId, token, userPasswordPutDTO.getNewPassword());
 	}
 
 	private String extractBearerToken(String authorizationHeader) {
