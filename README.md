@@ -4,6 +4,12 @@
 
 `build` + `bootRun` to build the app and launch a development server. The dev server run at `localhost:8080`.
 
+## Deployments Details
+
+Public backend URL (deployed by Google Cloud AppEngine): https://gen-lang-client-0107477828.oa.r.appspot.com
+
+Public frontend URL: https://sopra-fs26-template-client-dusky.vercel.app
+
 ## Notes
 
 ### Java Persistence API (JPA)
