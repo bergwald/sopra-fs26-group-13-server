@@ -4,6 +4,8 @@
 
 `build` + `bootRun` to build the app and launch a development server. The dev server run at `localhost:8080`.
 
+Run all tests by running `bash gradlew test` (or `Tasks > verification > test` through the VSCode Gradle extension). 
+
 ## Deployments Details
 
 Public backend URL (deployed by Google Cloud AppEngine): https://gen-lang-client-0107477828.oa.r.appspot.com
