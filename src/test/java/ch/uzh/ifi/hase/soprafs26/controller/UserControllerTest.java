@@ -51,6 +51,10 @@ public class UserControllerTest {
 	@MockitoBean
 	private UserService userService;
 
+	/**
+	 * Tests GET /users and verifies it returns all users as a JSON array (200 status).
+	 * GIVEN
+	*/
 	@Test
 	public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
 		// given
@@ -79,6 +83,10 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$[0].status", is(user.getStatus().toString())));
 	}
 
+	/**
+	 * Tests POST /users and verifies a valid request creates and returns a user (201 status).
+	 * GIVEN
+	 * */
 	@Test
 	public void createUser_validInput_userCreated() throws Exception {
 		// given
@@ -115,6 +123,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.token", is(user.getToken())));
 	}
 
+	/** Tests GET /users/{userId} and verifies an existing user is returned as JSON (200 status). */
 	@Test
 	public void givenUserId_whenGetUser_thenReturnJsonObject() throws Exception {
 		User user = new User();
@@ -138,6 +147,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
 	}
 
+	/** Tests GET /users/{userId} and verifies an unknown user ID returns 404. */
 	@Test
 	public void givenInvalidUserId_whenGetUser_thenReturnNotFound() throws Exception {
 		given(userService.getUserById(999L))
@@ -148,6 +158,7 @@ public class UserControllerTest {
 		mockMvc.perform(getRequest).andExpect(status().isNotFound());
 	}
 
+	/** Tests POST /login and verifies valid credentials return the logged-in user data (200 status). */
 	@Test
 	public void loginUser_validInput_userLoggedIn() throws Exception {
 		User user = new User();
@@ -178,6 +189,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.token", is(user.getToken())));
 	}
 
+	/** Tests POST /login and verifies invalid credentials return 401 Unauthorized. */
 	@Test
 	public void loginUser_invalidCredentials_unauthorized() throws Exception {
 		UserLoginDTO userLoginDTO = new UserLoginDTO();
@@ -194,6 +206,7 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests POST /logout and verifies a valid bearer token logs out with 204 No Content. */
 	@Test
 	public void logoutUser_validToken_noContent() throws Exception {
 		MockHttpServletRequestBuilder postRequest = post("/logout")
@@ -204,6 +217,7 @@ public class UserControllerTest {
 		Mockito.verify(userService).logoutUser("valid-token");
 	}
 
+	/** Tests POST /logout and verifies a missing Authorization header returns 401. */
 	@Test
 	public void logoutUser_missingAuthorizationHeader_unauthorized() throws Exception {
 		MockHttpServletRequestBuilder postRequest = post("/logout").contentType(MediaType.APPLICATION_JSON);
@@ -211,6 +225,7 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests POST /logout and verifies a malformed Authorization header returns 401. */
 	@Test
 	public void logoutUser_malformedAuthorizationHeader_unauthorized() throws Exception {
 		MockHttpServletRequestBuilder postRequest = post("/logout")
@@ -220,6 +235,7 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests POST /logout and verifies an unknown bearer token returns 401. */
 	@Test
 	public void logoutUser_unknownToken_unauthorized() throws Exception {
 		willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."))
@@ -232,6 +248,7 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests PUT /users/{userId} and verifies a valid password change request returns 204. */
 	@Test
 	public void changePassword_validRequest_noContent() throws Exception {
 		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
@@ -246,6 +263,7 @@ public class UserControllerTest {
 		Mockito.verify(userService).changePassword(1L, "valid-token", "newPassword123");
 	}
 
+	/** Tests PUT /users/{userId} and verifies a missing Authorization header returns 401. */
 	@Test
 	public void changePassword_missingAuthorizationHeader_unauthorized() throws Exception {
 		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
@@ -258,6 +276,7 @@ public class UserControllerTest {
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests PUT /users/{userId} and verifies a malformed Authorization header returns 401. */
 	@Test
 	public void changePassword_malformedAuthorizationHeader_unauthorized() throws Exception {
 		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
@@ -271,6 +290,7 @@ public class UserControllerTest {
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests PUT /users/{userId} and verifies token/user mismatch returns 401. */
 	@Test
 	public void changePassword_tokenUserMismatch_unauthorized() throws Exception {
 		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
@@ -287,6 +307,7 @@ public class UserControllerTest {
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
+	/** Tests PUT /users/{userId} and verifies a non-existent target user returns 404. */
 	@Test
 	public void changePassword_targetUserNotFound_notFound() throws Exception {
 		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
@@ -303,6 +324,7 @@ public class UserControllerTest {
 		mockMvc.perform(putRequest).andExpect(status().isNotFound());
 	}
 
+	/** Tests PUT /users/{userId} and verifies a too-short new password returns 400. */
 	@Test
 	public void changePassword_shortPassword_badRequest() throws Exception {
 		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
@@ -319,6 +341,7 @@ public class UserControllerTest {
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
 
+	/** Tests POST /users and verifies omitted bio defaults to an empty string in the response (201 status). */
 	@Test
 	public void createUser_missingBio_defaultsToEmptyString() throws Exception {
 		User user = new User();
@@ -347,6 +370,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.bio", is("")));
 	}
 
+	/** Tests POST /users and verifies a too-short password returns 400 Bad Request. */
 	@Test
 	public void createUser_shortPassword_badRequest() throws Exception {
 		UserPostDTO userPostDTO = new UserPostDTO();
@@ -366,6 +390,7 @@ public class UserControllerTest {
 				.andExpect(status().isBadRequest());
 	}
 
+	/** Tests POST /users and verifies a duplicate username returns 409 Conflict. */
 	@Test
 	public void createUser_duplicateUsername_conflict() throws Exception {
 		UserPostDTO userPostDTO = new UserPostDTO();
@@ -385,6 +410,7 @@ public class UserControllerTest {
 				.andExpect(status().isConflict());
 	}
 
+	/** Tests POST /users and verifies a blank name returns 400 Bad Request. */
 	@Test
 	public void createUser_blankName_badRequest() throws Exception {
 		UserPostDTO userPostDTO = new UserPostDTO();
@@ -404,6 +430,7 @@ public class UserControllerTest {
 				.andExpect(status().isBadRequest());
 	}
 
+	/** Tests POST /users and verifies a bio longer than 280 characters returns 400. */
 	@Test
 	public void createUser_tooLongBio_badRequest() throws Exception {
 		UserPostDTO userPostDTO = new UserPostDTO();
