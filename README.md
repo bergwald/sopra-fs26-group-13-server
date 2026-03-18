@@ -4,6 +4,8 @@
 
 Backend deployment URL: https://sopra-fs26-group-13-server.oa.r.appspot.com
 
+Frontend deployment URL: https://sopra-fs26-group-13-client.vercel.app
+
 ## DEV Commands
 
 `build` + `bootRun` to build the app and launch a development server. The dev server run at `localhost:8080`.
