@@ -1,16 +1,14 @@
 # SoPra RESTful Service Template FS26
 
+## Deployment
+
+Backend deployment URL: https://sopra-fs26-group-13-server.oa.r.appspot.com
+
 ## DEV Commands
 
 `build` + `bootRun` to build the app and launch a development server. The dev server run at `localhost:8080`.
 
 Run all tests by running `bash gradlew test` (or `Tasks > verification > test` through the VSCode Gradle extension). 
-
-## Deployments Details
-
-Public backend URL (deployed by Google Cloud AppEngine): https://gen-lang-client-0107477828.oa.r.appspot.com
-
-Public frontend URL: https://sopra-fs26-template-client-dusky.vercel.app
 
 ## Notes
 
