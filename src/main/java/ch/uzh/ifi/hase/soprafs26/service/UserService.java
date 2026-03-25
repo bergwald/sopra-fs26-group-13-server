@@ -95,33 +95,36 @@ public class UserService {
 		userRepository.flush();
 	}
 
-	public void changePassword(Long targetUserId, String requesterToken, String newPassword) {
-		// First, validate the token (to avoid leaking whether a user ID exists to unauthenticated users)
-		if (requesterToken == null || requesterToken.isBlank()) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+	public void updateUser(Long targetUserId, String requesterToken, String newBio, String newPassword) {
+		User targetUser = getAuthorizedTargetUser(targetUserId, requesterToken);
+
+		boolean updateBio = newBio != null;
+		boolean updatePassword = newPassword != null;
+		if (!updateBio && !updatePassword) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"At least one updatable field must be provided.");
 		}
 
-		User requester = userRepository.findByToken(requesterToken);
-		if (requester == null) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		String normalizedBio = null;
+		if (updateBio) {
+			normalizedBio = normalizeBio(newBio);
+			validateBio(normalizedBio);
 		}
 
-		// Secondly, check if the user exists and return 404 otherwise (according to the spec of M1)
-		User targetUser = userRepository.findById(targetUserId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-						String.format("User with id %d was not found.", targetUserId)));
-
-		// Then, enforce ownership: requester ID must equal target ID
-		if (!requester.getId().equals(targetUser.getId())) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only change your own password.");
+		if (updatePassword) {
+			validateNewPassword(newPassword);
 		}
 
-		// Finally, validate password and save the new password
-		validateNewPassword(newPassword);
+		if (updateBio) {
+			targetUser.setBio(normalizedBio);
+		}
 
-		targetUser.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
-		targetUser.setStatus(UserStatus.OFFLINE);
-		targetUser.setToken(UUID.randomUUID().toString());
+		if (updatePassword) {
+			targetUser.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+			targetUser.setStatus(UserStatus.OFFLINE);
+			targetUser.setToken(UUID.randomUUID().toString());
+		}
+
 		userRepository.save(targetUser);
 		userRepository.flush();
 	}
@@ -160,11 +163,32 @@ public class UserService {
 		}
 
 		String normalizedBio = normalizeBio(userToBeCreated.getBio());
-		if (normalizedBio.length() > MAX_BIO_LENGTH) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					String.format("The bio must be at most %d characters long.", MAX_BIO_LENGTH));
-		}
+		validateBio(normalizedBio);
 		userToBeCreated.setBio(normalizedBio);
+	}
+
+	private User getAuthorizedTargetUser(Long targetUserId, String requesterToken) {
+		// First, validate the token (to avoid leaking whether a user ID exists to unauthenticated users)
+		if (requesterToken == null || requesterToken.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		User requester = userRepository.findByToken(requesterToken);
+		if (requester == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		// Secondly, check if the user exists and return 404 otherwise (according to the spec of M1)
+		User targetUser = userRepository.findById(targetUserId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+						String.format("User with id %d was not found.", targetUserId)));
+
+		// Then, enforce ownership: requester ID must equal target ID
+		if (!requester.getId().equals(targetUser.getId())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own user.");
+		}
+
+		return targetUser;
 	}
 
 	private String normalizeBio(String bio) {
@@ -172,6 +196,13 @@ public class UserService {
 			return "";
 		}
 		return bio.trim();
+	}
+
+	private void validateBio(String bio) {
+		if (bio.length() > MAX_BIO_LENGTH) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("The bio must be at most %d characters long.", MAX_BIO_LENGTH));
+		}
 	}
 
 	private void validateNewPassword(String newPassword) {
