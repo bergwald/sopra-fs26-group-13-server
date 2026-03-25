@@ -8,7 +8,7 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPasswordPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserUpdatePutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 
 import org.junit.jupiter.api.Test;
@@ -248,95 +248,144 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
-	/** Tests PUT /users/{userId} and verifies a valid password change request returns 204. */
+	/** Tests PUT /users/{userId} and verifies a valid bio-only update returns 204. */
 	@Test
-	public void changePassword_validRequest_noContent() throws Exception {
-		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
-		userPasswordPutDTO.setNewPassword("newPassword123");
+	public void updateUser_bioOnly_noContent() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("Updated bio");
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userPasswordPutDTO));
+				.content(asJsonString(userUpdatePutDTO));
 
 		mockMvc.perform(putRequest).andExpect(status().isNoContent());
-		Mockito.verify(userService).changePassword(1L, "valid-token", "newPassword123");
+		Mockito.verify(userService).updateUser(1L, "valid-token", "Updated bio", null);
+	}
+
+	/** Tests PUT /users/{userId} and verifies a valid combined update returns 204. */
+	@Test
+	public void updateUser_bioAndPassword_noContent() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("Updated bio");
+		userUpdatePutDTO.setNewPassword("newPassword123");
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userUpdatePutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isNoContent());
+		Mockito.verify(userService).updateUser(1L, "valid-token", "Updated bio", "newPassword123");
 	}
 
 	/** Tests PUT /users/{userId} and verifies a missing Authorization header returns 401. */
 	@Test
-	public void changePassword_missingAuthorizationHeader_unauthorized() throws Exception {
-		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
-		userPasswordPutDTO.setNewPassword("newPassword123");
+	public void updateUser_missingAuthorizationHeader_unauthorized() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("Updated bio");
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPasswordPutDTO));
+				.content(asJsonString(userUpdatePutDTO));
 
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
 	/** Tests PUT /users/{userId} and verifies a malformed Authorization header returns 401. */
 	@Test
-	public void changePassword_malformedAuthorizationHeader_unauthorized() throws Exception {
-		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
-		userPasswordPutDTO.setNewPassword("newPassword123");
+	public void updateUser_malformedAuthorizationHeader_unauthorized() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("Updated bio");
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "invalid-token")
-				.content(asJsonString(userPasswordPutDTO));
+				.content(asJsonString(userUpdatePutDTO));
 
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
 	/** Tests PUT /users/{userId} and verifies token/user mismatch returns 401. */
 	@Test
-	public void changePassword_tokenUserMismatch_unauthorized() throws Exception {
-		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
-		userPasswordPutDTO.setNewPassword("newPassword123");
+	public void updateUser_tokenUserMismatch_unauthorized() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("Updated bio");
 
-		willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only change your own password."))
-				.given(userService).changePassword(2L, "valid-token", "newPassword123");
+		willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own user."))
+				.given(userService).updateUser(2L, "valid-token", "Updated bio", null);
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 2L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userPasswordPutDTO));
+				.content(asJsonString(userUpdatePutDTO));
 
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
 	/** Tests PUT /users/{userId} and verifies a non-existent target user returns 404. */
 	@Test
-	public void changePassword_targetUserNotFound_notFound() throws Exception {
-		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
-		userPasswordPutDTO.setNewPassword("newPassword123");
+	public void updateUser_targetUserNotFound_notFound() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("Updated bio");
 
 		willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id 999 was not found."))
-				.given(userService).changePassword(999L, "valid-token", "newPassword123");
+				.given(userService).updateUser(999L, "valid-token", "Updated bio", null);
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 999L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userPasswordPutDTO));
+				.content(asJsonString(userUpdatePutDTO));
 
 		mockMvc.perform(putRequest).andExpect(status().isNotFound());
 	}
 
 	/** Tests PUT /users/{userId} and verifies a too-short new password returns 400. */
 	@Test
-	public void changePassword_shortPassword_badRequest() throws Exception {
-		UserPasswordPutDTO userPasswordPutDTO = new UserPasswordPutDTO();
-		userPasswordPutDTO.setNewPassword("short");
+	public void updateUser_shortPassword_badRequest() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setNewPassword("short");
 
 		willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."))
-				.given(userService).changePassword(1L, "valid-token", "short");
+				.given(userService).updateUser(1L, "valid-token", null, "short");
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userPasswordPutDTO));
+				.content(asJsonString(userUpdatePutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
+	}
+
+	/** Tests PUT /users/{userId} and verifies a too-long bio returns 400. */
+	@Test
+	public void updateUser_tooLongBio_badRequest() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setBio("a".repeat(281));
+
+		willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The bio must be at most 280 characters long."))
+				.given(userService).updateUser(1L, "valid-token", "a".repeat(281), null);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userUpdatePutDTO));
+
+		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
+	}
+
+	/** Tests PUT /users/{userId} and verifies an empty update request returns 400. */
+	@Test
+	public void updateUser_noFields_badRequest() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+
+		willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one updatable field must be provided."))
+				.given(userService).updateUser(1L, "valid-token", null, null);
+
+		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(asJsonString(userUpdatePutDTO));
 
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
