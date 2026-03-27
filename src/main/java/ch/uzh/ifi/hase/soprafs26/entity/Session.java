@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "session")
-public class GameSession implements Serializable {
+public class Session implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
