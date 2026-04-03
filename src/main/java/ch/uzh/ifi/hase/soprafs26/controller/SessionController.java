@@ -48,6 +48,26 @@ public class SessionController {
 		return sessionGetDTOs;
 	}
 
+	@PostMapping("/session")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public SessionGetDTO createSession() {
+		// Creates a new session and returns the new session type
+		// TODO: Validate users
+		Session createdSession = sessionService.createNewSession();
+		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
+	}
+
+
+	@PutMapping("/session")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public SessionGetDTO userJoinSession() {
+		// Adds a user to a 
+		// TODO: Validate users
+		Session createdSession = sessionService.createNewSession();
+		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
+	}
 	
     
 }
