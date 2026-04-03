@@ -12,6 +12,10 @@ public class SessionGetDTO {
         return this.id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public LocalDateTime getSessionExpiryDateTime() {
         return sessionExpiryDateTime;
     }
