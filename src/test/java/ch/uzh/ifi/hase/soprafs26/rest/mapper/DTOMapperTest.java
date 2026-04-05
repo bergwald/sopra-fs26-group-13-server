@@ -104,7 +104,7 @@ public class DTOMapperTest {
 	public void testGetGame_data_fromGameDataGetDTO_data_toGame_data_success() {
 		// create User
 		Game_data GameData = new Game_data();
-		GameData.setData_Id(Long.valueOf(123456));
+		GameData.setDataId(Long.valueOf(123456));
 		GameData.setSession_id("Session11111");
 		GameData.setImage_url("wikiimage.com/imagenr");
 		GameData.setLongitude(1.0f);
@@ -115,7 +115,7 @@ public class DTOMapperTest {
 		GameDataGetDTO gameDataGetDTO = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(GameData);
 
 		// check content
-		GameData.getData_Id();
+		GameData.getDataId();
 		assertEquals(GameData.getSession_id(), gameDataGetDTO.getSession_id());
 		assertEquals(GameData.getImage_url(), gameDataGetDTO.getWikidata_url());
 		assertEquals(GameData.getRound_number(), gameDataGetDTO.getRound_number());
