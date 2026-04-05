@@ -3,14 +3,14 @@ package ch.uzh.ifi.hase.soprafs26.entity;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 @Entity
-@Table(name = "session_user")
+@Table(name = "sessionuser")
 public class SessionUser implements Serializable {
 
     @Id
-    private Long userId;
+    @GeneratedValue
+    private Long id;
 
     @OneToOne(fetch = FetchType.EAGER, optional = false, cascade = CascadeType.PERSIST)
     @MapsId
@@ -25,20 +25,28 @@ public class SessionUser implements Serializable {
     @Column(nullable = false)
     private long score = 0L;
 
-    public Long getUserId() {
-        return this.userId;
+    public Long getId(){
+        return this.id;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setId(Long id){
+        this.id = id;
     }
 
-    public String getSessionId() {
-        return this.session.getId().toString();
+    public User getUser() {
+        return this.user;
     }
 
-    public void setSessionId(UUID sessionId) {
-        this.session.setId(sessionId);
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Session getSession() {
+        return this.session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
     }
 
     public Long getScore() {
