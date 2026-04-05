@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 public class GuessEvaluationService {
 
     private static final double EARTH_RADIUS_KM = 6371.0;
+    private static final int MAX_SCORE = 100;
+    private static final double HALF_SCORE_DISTANCE_KM = 1000.0;
 
     public double computeDistanceKm(double guessLatitude, double guessLongitude, double actualLatitude,
             double actualLongitude) {
@@ -20,5 +22,23 @@ public class GuessEvaluationService {
 
         double angularDistance = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
         return EARTH_RADIUS_KM * angularDistance;
+    }
+
+    public int computeScore(double distanceKm) {
+        if (!Double.isFinite(distanceKm) || distanceKm < 0) {
+            return 0;
+        }
+
+        double score = MAX_SCORE * Math.pow(0.5, distanceKm / HALF_SCORE_DISTANCE_KM);
+        long roundedScore = Math.round(score);
+
+        if (roundedScore < 0) {
+            return 0;
+        }
+        if (roundedScore > MAX_SCORE) {
+            return MAX_SCORE;
+        }
+
+        return (int) roundedScore;
     }
 }
