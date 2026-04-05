@@ -9,6 +9,10 @@ public class GuessEvaluationService {
     private static final int MAX_SCORE = 100;
     private static final double HALF_SCORE_DISTANCE_KM = 1000.0;
 
+    /**
+     * Computes the great-circle distance in kilometers between a guessed location
+     * and the actual location using the Haversine formula.
+     */
     public double computeDistanceKm(double guessLatitude, double guessLongitude, double actualLatitude,
             double actualLongitude) {
         double latitudeDeltaRadians = Math.toRadians(actualLatitude - guessLatitude);
@@ -24,6 +28,10 @@ public class GuessEvaluationService {
         return EARTH_RADIUS_KM * angularDistance;
     }
 
+    /**
+     * Computes a score from a distance in kilometers with exponential decay, where
+     * 0 km yields the maximum score and the score halves every 1000 km.
+     */
     public int computeScore(double distanceKm) {
         if (!Double.isFinite(distanceKm) || distanceKm < 0) {
             return 0;
