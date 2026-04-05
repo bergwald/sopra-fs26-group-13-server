@@ -7,7 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository("sessionRepository")
-public interface SessionRepository extends JpaRepository<Session, UUID> {
-    Session findById(String id);
+public interface SessionRepository extends JpaRepository<Session, String> {
+    Session findById(UUID id);
 
 }
