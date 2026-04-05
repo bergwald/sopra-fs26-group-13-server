@@ -12,7 +12,7 @@ public class Game_data implements Serializable{
 
 	@Id
 	@GeneratedValue
-	private Long data_id;
+	private Long dataId;
 
 	@Column(nullable = false)
 	private String session_id;
@@ -29,12 +29,12 @@ public class Game_data implements Serializable{
 	@Column(nullable = true)
 	private int round_number;
 
-	public Long getData_Id() {
-		return data_id;
+	public Long getDataId() {
+		return dataId;
 	}
 
-	public void setData_Id(Long data_id) {
-		this.data_id = data_id;
+	public void setDataId(Long dataId) {
+		this.dataId = dataId;
 	}
 
 	public String getSession_id() {

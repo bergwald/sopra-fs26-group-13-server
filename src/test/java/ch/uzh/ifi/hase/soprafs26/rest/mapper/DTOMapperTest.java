@@ -4,10 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
 
 import java.time.Instant;
 
@@ -96,5 +98,28 @@ public class DTOMapperTest {
 		assertEquals(user.getBio(), userProfileGetDTO.getBio());
 		assertEquals(user.getStatus(), userProfileGetDTO.getStatus());
 		assertEquals(user.getCreationDate(), userProfileGetDTO.getCreationDate());
+	}
+
+		@Test
+	public void testGetGame_data_fromGameDataGetDTO_data_toGame_data_success() {
+		// create User
+		Game_data GameData = new Game_data();
+		GameData.setDataId(Long.valueOf(123456));
+		GameData.setSession_id("Session11111");
+		GameData.setImage_url("wikiimage.com/imagenr");
+		GameData.setLongitude(1.0f);
+		GameData.setLatitude(4.0f);
+		GameData.setRound_number(3);
+
+		// MAP -> Create GameDataGetDTO
+		GameDataGetDTO gameDataGetDTO = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(GameData);
+
+		// check content
+		GameData.getDataId();
+		assertEquals(GameData.getSession_id(), gameDataGetDTO.getSession_id());
+		assertEquals(GameData.getImage_url(), gameDataGetDTO.getWikidata_url());
+		assertEquals(GameData.getRound_number(), gameDataGetDTO.getRound_number());
+		GameData.getLongitude();
+		GameData.getLatitude();
 	}
 }
