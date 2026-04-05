@@ -29,12 +29,12 @@ public class Game_data implements Serializable{
 	@Column(nullable = true)
 	private int round_number;
 
-	public Long getId() {
-		return id;
+	public Long getData_Id() {
+		return data_id;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setData_Id(Long data_id) {
+		this.data_id = data_id;
 	}
 
 	public String getSession_id() {
