@@ -4,10 +4,12 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
 
 /**
  * DTOMapper
@@ -57,4 +59,9 @@ public interface DTOMapper {
 	@Mapping(source = "status", target = "status")
 	@Mapping(source = "token", target = "token")
 	UserRegisterResponseDTO convertEntityToUserRegisterResponseDTO(User user);
+
+	@Mapping(source = "session_id", target = "session_id")
+	@Mapping(source = "image_url", target = "wikidata_url")
+	@Mapping(source = "round_number", target = "round_number")
+	GameDataGetDTO convertEntityToGameDataGetDTO(Game_data game_data);
 }
