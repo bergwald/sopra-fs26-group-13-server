@@ -10,7 +10,6 @@ import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionPutDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.SessionService;
 
@@ -39,9 +38,13 @@ public class SessionController {
 	@GetMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public List<SessionGetDTO> getAllUsers() {
+	public List<SessionGetDTO> getAllUsers(
+		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+		@RequestHeader(value = "userId", required = false) Long userId
+	) {
 		// fetch all sessions in the internal representation
-		// TODO: Validate user
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthorizedTargetUser(userId, token);
 		List<Session> sessions = sessionService.getAllSessions();
 		List<SessionGetDTO> sessionGetDTOs = new ArrayList<>();
 
@@ -55,13 +58,14 @@ public class SessionController {
 	@PostMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost) {
+	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost,
+		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+		@RequestHeader(value = "userId", required = false) Long userId
+	) {
 		// Creates a new session and returns the new session type
-		// TODO: Validate users
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthorizedTargetUser(userId, token);
 		Session createdSession = sessionService.createNewSession();
-		System.out.println("HERE");
-		System.out.println(sessionPost.getUserId());
-
 		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId());
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
@@ -69,9 +73,12 @@ public class SessionController {
 	@PutMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public SessionGetDTO userJoinSession(@RequestBody SessionPutDTO sessionPut) {
-		// Adds a user to a
-		// TODO: Validate users
+	public SessionGetDTO userJoinSession(@RequestBody SessionPutDTO sessionPut,
+		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+		@RequestHeader(value = "userId", required = false) Long userId
+	) {
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthorizedTargetUser(userId, token);
 		Session createdSession = sessionService.userJoinSession(sessionPut.getUserId(),
 				UUID.fromString(sessionPut.getSessionId()));
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
