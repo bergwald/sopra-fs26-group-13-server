@@ -5,13 +5,16 @@ import org.junit.jupiter.api.Test;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
+import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -100,7 +103,7 @@ public class DTOMapperTest {
 		assertEquals(user.getCreationDate(), userProfileGetDTO.getCreationDate());
 	}
 
-		@Test
+	@Test
 	public void testGetGame_data_fromGameDataGetDTO_data_toGame_data_success() {
 		// create User
 		Game_data GameData = new Game_data();
@@ -121,5 +124,20 @@ public class DTOMapperTest {
 		assertEquals(GameData.getRound_number(), gameDataGetDTO.getRound_number());
 		GameData.getLongitude();
 		GameData.getLatitude();
+	}
+
+	@Test
+	public void testGetSession_fromSession_toSessionGetDTO_success() {
+		LocalDateTime currentDateTime = LocalDateTime.of(2026, 1, 1, 8, 30, 00);
+
+		Session session = new Session();
+		session.setRoundNumber(1);
+		session.setSessionExpiryDateTime(currentDateTime);
+
+		SessionGetDTO sessionGetDTO = DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(session);
+
+		assertEquals(session.getId(), sessionGetDTO.getId());
+		assertEquals(session.getRoundNumber(), sessionGetDTO.getRoundNumber());
+		assertEquals(session.getSessionExpiryDateTime(), sessionGetDTO.getSessionExpiryDateTime());
 	}
 }
