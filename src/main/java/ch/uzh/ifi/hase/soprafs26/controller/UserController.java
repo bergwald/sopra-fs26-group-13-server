@@ -80,7 +80,7 @@ public class UserController {
 	@PostMapping("/logout")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void logoutUser(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
-		String token = extractBearerToken(authorizationHeader);
+		String token = this.userService.extractBearerToken(authorizationHeader);
 		userService.logoutUser(token);
 	}
 
@@ -89,20 +89,7 @@ public class UserController {
 	public void updateUser(@PathVariable("userId") Long userId,
 			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 			@RequestBody UserUpdatePutDTO userUpdatePutDTO) {
-		String token = extractBearerToken(authorizationHeader);
+		String token = this.userService.extractBearerToken(authorizationHeader);
 		userService.updateUser(userId, token, userUpdatePutDTO.getBio(), userUpdatePutDTO.getNewPassword());
-	}
-
-	private String extractBearerToken(String authorizationHeader) {
-		String bearerPrefix = "Bearer ";
-		if (authorizationHeader == null || authorizationHeader.isBlank() || !authorizationHeader.startsWith(bearerPrefix)) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
-		}
-
-		String token = authorizationHeader.substring(bearerPrefix.length()).trim();
-		if (token.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
-		}
-		return token;
 	}
 }
