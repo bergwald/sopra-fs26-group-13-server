@@ -161,7 +161,7 @@ public class SessionControllerTest {
         Session session = sampleSession();
         given(sessionService.createNewSession()).willReturn(session);
 
-        given(userService.extractBearerToken(anyString())).willReturn(null);
+        given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
         given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
         given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
