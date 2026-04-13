@@ -108,20 +108,20 @@ public class DTOMapperTest {
 		// create User
 		Game_data GameData = new Game_data();
 		GameData.setDataId(Long.valueOf(123456));
-		GameData.setSession_id("Session11111");
-		GameData.setImage_url("wikiimage.com/imagenr");
+		GameData.setSessionId("Session11111");
+		GameData.setImageUrl("wikiimage.com/imagenr");
 		GameData.setLongitude(1.0f);
 		GameData.setLatitude(4.0f);
-		GameData.setRound_number(3);
+		GameData.setRoundNumber(3);
 
 		// MAP -> Create GameDataGetDTO
 		GameDataGetDTO gameDataGetDTO = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(GameData);
 
 		// check content
 		GameData.getDataId();
-		assertEquals(GameData.getSession_id(), gameDataGetDTO.getSession_id());
-		assertEquals(GameData.getImage_url(), gameDataGetDTO.getWikidata_url());
-		assertEquals(GameData.getRound_number(), gameDataGetDTO.getRound_number());
+		assertEquals(GameData.getSessionId(), gameDataGetDTO.getSessionId());
+		assertEquals(GameData.getImageUrl(), gameDataGetDTO.getWikidataUrl());
+		assertEquals(GameData.getRoundNumber(), gameDataGetDTO.getRoundNumber());
 		GameData.getLongitude();
 		GameData.getLatitude();
 	}

@@ -12,6 +12,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
 
 /**
@@ -63,10 +64,14 @@ public interface DTOMapper {
 	@Mapping(source = "token", target = "token")
 	UserRegisterResponseDTO convertEntityToUserRegisterResponseDTO(User user);
 
-	@Mapping(source = "session_id", target = "session_id")
-	@Mapping(source = "image_url", target = "wikidata_url")
-	@Mapping(source = "round_number", target = "round_number")
+	@Mapping(source = "sessionId", target = "sessionId")
+	@Mapping(source = "imageUrl", target = "wikidataUrl")
+	@Mapping(source = "roundNumber", target = "roundNumber")
 	GameDataGetDTO convertEntityToGameDataGetDTO(Game_data game_data);
+
+	@Mapping(source = "sessionId", target = "sessionId")
+	@Mapping(source = "roundNumber", target = "roundNumber")
+	Game_data convertGameGetDTOToEntity(GameGetDTO gameGetDTO);
 
 	@Mapping(source = "id", target = "id")
 	@Mapping(source = "sessionExpiryDateTime", target = "sessionExpiryDateTime")

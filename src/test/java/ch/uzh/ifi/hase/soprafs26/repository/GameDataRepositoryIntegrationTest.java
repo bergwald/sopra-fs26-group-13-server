@@ -23,11 +23,11 @@ public class GameDataRepositoryIntegrationTest {
 	public void findByDataId_success() {
 		// given
 		Game_data gameData = new Game_data();
-		gameData.setSession_id("Session1234");
-		gameData.setImage_url("wikipictures.com/nr");
+		gameData.setSessionId("Session1234");
+		gameData.setImageUrl("wikipictures.com/nr");
 		gameData.setLongitude(1.234f);
 		gameData.setLatitude(5.678f);
-		gameData.setRound_number(1);
+		gameData.setRoundNumber(1);
 
 		entityManager.persist(gameData);
 		entityManager.flush();
@@ -36,7 +36,7 @@ public class GameDataRepositoryIntegrationTest {
 		Game_data found = gameDataRepository.findByDataId(gameData.getDataId());
 
 		// then
-		assertEquals(found.getSession_id(), gameData.getSession_id());
+		assertEquals(found.getSessionId(), gameData.getSessionId());
 	}
 
 }
