@@ -3,7 +3,6 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
@@ -28,8 +27,10 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -52,9 +53,10 @@ public class UserControllerTest {
 	private UserService userService;
 
 	/**
-	 * Tests GET /users and verifies it returns all users as a JSON array (200 status).
+	 * Tests GET /users and verifies it returns all users as a JSON array (200
+	 * status).
 	 * GIVEN
-	*/
+	 */
 	@Test
 	public void givenUsers_whenGetUsers_thenReturnJsonArray() throws Exception {
 		// given
@@ -84,9 +86,10 @@ public class UserControllerTest {
 	}
 
 	/**
-	 * Tests POST /users and verifies a valid request creates and returns a user (201 status).
+	 * Tests POST /users and verifies a valid request creates and returns a user
+	 * (201 status).
 	 * GIVEN
-	 * */
+	 */
 	@Test
 	public void createUser_validInput_userCreated() throws Exception {
 		// given
@@ -123,7 +126,10 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.token", is(user.getToken())));
 	}
 
-	/** Tests GET /users/{userId} and verifies an existing user is returned as JSON (200 status). */
+	/**
+	 * Tests GET /users/{userId} and verifies an existing user is returned as JSON
+	 * (200 status).
+	 */
 	@Test
 	public void givenUserId_whenGetUser_thenReturnJsonObject() throws Exception {
 		User user = new User();
@@ -158,7 +164,10 @@ public class UserControllerTest {
 		mockMvc.perform(getRequest).andExpect(status().isNotFound());
 	}
 
-	/** Tests POST /login and verifies valid credentials return the logged-in user data (200 status). */
+	/**
+	 * Tests POST /login and verifies valid credentials return the logged-in user
+	 * data (200 status).
+	 */
 	@Test
 	public void loginUser_validInput_userLoggedIn() throws Exception {
 		User user = new User();
@@ -189,7 +198,9 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.token", is(user.getToken())));
 	}
 
-	/** Tests POST /login and verifies invalid credentials return 401 Unauthorized. */
+	/**
+	 * Tests POST /login and verifies invalid credentials return 401 Unauthorized.
+	 */
 	@Test
 	public void loginUser_invalidCredentials_unauthorized() throws Exception {
 		UserLoginDTO userLoginDTO = new UserLoginDTO();
@@ -197,7 +208,8 @@ public class UserControllerTest {
 		userLoginDTO.setPassword("wrongPassword");
 
 		given(userService.loginUser(userLoginDTO.getUsername(), userLoginDTO.getPassword()))
-				.willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password provided is incorrect."));
+				.willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+						"The username or password provided is incorrect."));
 
 		MockHttpServletRequestBuilder postRequest = post("/login")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -206,32 +218,41 @@ public class UserControllerTest {
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
-	/** Tests POST /logout and verifies a valid bearer token logs out with 204 No Content. */
+	/**
+	 * Tests POST /logout and verifies a valid bearer token logs out with 204 No
+	 * Content.
+	 */
 	@Test
 	public void logoutUser_validToken_noContent() throws Exception {
 		MockHttpServletRequestBuilder postRequest = post("/logout")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token");
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(postRequest).andExpect(status().isNoContent());
 		Mockito.verify(userService).logoutUser("valid-token");
 	}
 
-	/** Tests POST /logout and verifies a missing Authorization header returns 401. */
+	/**
+	 * Tests POST /logout and verifies a missing Authorization header returns 401.
+	 */
 	@Test
 	public void logoutUser_missingAuthorizationHeader_unauthorized() throws Exception {
 		MockHttpServletRequestBuilder postRequest = post("/logout").contentType(MediaType.APPLICATION_JSON);
-
+		when(userService.extractBearerToken(null))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
-	/** Tests POST /logout and verifies a malformed Authorization header returns 401. */
+	/**
+	 * Tests POST /logout and verifies a malformed Authorization header returns 401.
+	 */
 	@Test
 	public void logoutUser_malformedAuthorizationHeader_unauthorized() throws Exception {
 		MockHttpServletRequestBuilder postRequest = post("/logout")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "invalid-token");
-
+		when(userService.extractBearerToken(anyString()))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
@@ -244,11 +265,14 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder postRequest = post("/logout")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer unknown-token");
-
+		when(userService.extractBearerToken(anyString()))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
 
-	/** Tests PUT /users/{userId} and verifies a valid bio-only update returns 204. */
+	/**
+	 * Tests PUT /users/{userId} and verifies a valid bio-only update returns 204.
+	 */
 	@Test
 	public void updateUser_bioOnly_noContent() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
@@ -258,12 +282,14 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isNoContent());
 		Mockito.verify(userService).updateUser(1L, "valid-token", "Updated bio", null);
 	}
 
-	/** Tests PUT /users/{userId} and verifies a valid combined update returns 204. */
+	/**
+	 * Tests PUT /users/{userId} and verifies a valid combined update returns 204.
+	 */
 	@Test
 	public void updateUser_bioAndPassword_noContent() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
@@ -274,12 +300,15 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isNoContent());
 		Mockito.verify(userService).updateUser(1L, "valid-token", "Updated bio", "newPassword123");
 	}
 
-	/** Tests PUT /users/{userId} and verifies a missing Authorization header returns 401. */
+	/**
+	 * Tests PUT /users/{userId} and verifies a missing Authorization header returns
+	 * 401.
+	 */
 	@Test
 	public void updateUser_missingAuthorizationHeader_unauthorized() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
@@ -288,11 +317,15 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(null))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
-	/** Tests PUT /users/{userId} and verifies a malformed Authorization header returns 401. */
+	/**
+	 * Tests PUT /users/{userId} and verifies a malformed Authorization header
+	 * returns 401.
+	 */
 	@Test
 	public void updateUser_malformedAuthorizationHeader_unauthorized() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
@@ -302,7 +335,8 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "invalid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString()))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
@@ -319,11 +353,14 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
 
-	/** Tests PUT /users/{userId} and verifies a non-existent target user returns 404. */
+	/**
+	 * Tests PUT /users/{userId} and verifies a non-existent target user returns
+	 * 404.
+	 */
 	@Test
 	public void updateUser_targetUserNotFound_notFound() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
@@ -336,24 +373,27 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isNotFound());
 	}
 
-	/** Tests PUT /users/{userId} and verifies a too-short new password returns 400. */
+	/**
+	 * Tests PUT /users/{userId} and verifies a too-short new password returns 400.
+	 */
 	@Test
 	public void updateUser_shortPassword_badRequest() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
 		userUpdatePutDTO.setNewPassword("short");
 
-		willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."))
+		willThrow(
+				new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."))
 				.given(userService).updateUser(1L, "valid-token", null, "short");
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
 
@@ -370,14 +410,18 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
 
-	/** Tests PUT /users/{userId} and verifies an empty update request returns 400. */
+	/**
+	 * Tests PUT /users/{userId} and verifies an empty update request returns 400.
+	 */
 	@Test
 	public void updateUser_noFields_badRequest() throws Exception {
 		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		when(userService.extractBearerToken(anyString()))
+				.thenReturn("valid-token");
 
 		willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one updatable field must be provided."))
 				.given(userService).updateUser(1L, "valid-token", null, null);
@@ -386,11 +430,14 @@ public class UserControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
 				.content(asJsonString(userUpdatePutDTO));
-
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
 
-	/** Tests POST /users and verifies omitted bio defaults to an empty string in the response (201 status). */
+	/**
+	 * Tests POST /users and verifies omitted bio defaults to an empty string in the
+	 * response (201 status).
+	 */
 	@Test
 	public void createUser_missingBio_defaultsToEmptyString() throws Exception {
 		User user = new User();
@@ -419,7 +466,9 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.bio", is("")));
 	}
 
-	/** Tests POST /users and verifies a too-short password returns 400 Bad Request. */
+	/**
+	 * Tests POST /users and verifies a too-short password returns 400 Bad Request.
+	 */
 	@Test
 	public void createUser_shortPassword_badRequest() throws Exception {
 		UserPostDTO userPostDTO = new UserPostDTO();
@@ -429,7 +478,8 @@ public class UserControllerTest {
 		userPostDTO.setBio("Short bio");
 
 		given(userService.createUser(Mockito.any(), Mockito.anyString()))
-				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long."));
+				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						"The password must be at least 8 characters long."));
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -479,7 +529,9 @@ public class UserControllerTest {
 				.andExpect(status().isBadRequest());
 	}
 
-	/** Tests POST /users and verifies a bio longer than 280 characters returns 400. */
+	/**
+	 * Tests POST /users and verifies a bio longer than 280 characters returns 400.
+	 */
 	@Test
 	public void createUser_tooLongBio_badRequest() throws Exception {
 		UserPostDTO userPostDTO = new UserPostDTO();
@@ -489,7 +541,8 @@ public class UserControllerTest {
 		userPostDTO.setBio("a".repeat(281));
 
 		given(userService.createUser(Mockito.any(), Mockito.anyString()))
-				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "The bio must be at most 280 characters long."));
+				.willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						"The bio must be at most 280 characters long."));
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -503,7 +556,8 @@ public class UserControllerTest {
 	 * Helper Method to convert userPostDTO into a JSON string such that the input
 	 * can be processed
 	 * Input will look like this:
-	 * {"name":"Test User", "username":"testUsername", "password":"password123", "bio":"Short bio"}
+	 * {"name":"Test User", "username":"testUsername", "password":"password123",
+	 * "bio":"Short bio"}
 	 * 
 	 * @param object
 	 * @return string

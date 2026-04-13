@@ -167,7 +167,7 @@ public class UserService {
 		userToBeCreated.setBio(normalizedBio);
 	}
 
-	private User getAuthorizedTargetUser(Long targetUserId, String requesterToken) {
+	public User getAuthorizedTargetUser(Long targetUserId, String requesterToken) {
 		// First, validate the token (to avoid leaking whether a user ID exists to unauthenticated users)
 		if (requesterToken == null || requesterToken.isBlank()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
@@ -213,6 +213,19 @@ public class UserService {
 		if (newPassword.length() < MIN_PASSWORD_LENGTH) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
 		}
+	}
+	
+	public String extractBearerToken(String authorizationHeader) {
+		String bearerPrefix = "Bearer ";
+		if (authorizationHeader == null || authorizationHeader.isBlank() || !authorizationHeader.startsWith(bearerPrefix)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		String token = authorizationHeader.substring(bearerPrefix.length()).trim();
+		if (token.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+		return token;
 	}
 
 	/**
