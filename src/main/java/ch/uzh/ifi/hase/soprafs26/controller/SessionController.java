@@ -37,7 +37,6 @@ public class SessionController {
 
 	@GetMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public List<SessionGetDTO> getAllUsers(
 		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 		@RequestHeader(value = "userId", required = false) Long userId
@@ -57,7 +56,6 @@ public class SessionController {
 
 	@PostMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost,
 		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 		@RequestHeader(value = "userId", required = false) Long userId
@@ -72,7 +70,6 @@ public class SessionController {
 
 	@PutMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public SessionGetDTO userJoinSession(@RequestBody SessionPutDTO sessionPut,
 		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 		@RequestHeader(value = "userId", required = false) Long userId

@@ -30,7 +30,6 @@ public class GameController {
 
 	@GetMapping("/game_data")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public GameDataGetDTO GameDataGetDTO (@RequestBody GameGetDTO gameGetDTOin) {
 		Game_data input = DTOMapper.INSTANCE.convertGameGetDTOToEntity(gameGetDTOin);
 		Game_data output = gameService.getGameData(input);
