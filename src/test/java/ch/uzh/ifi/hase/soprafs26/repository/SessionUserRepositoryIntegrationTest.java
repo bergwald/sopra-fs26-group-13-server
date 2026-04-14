@@ -55,9 +55,9 @@ public class SessionUserRepositoryIntegrationTest {
         ;
 
         assertNotNull(foundSessionUser);
-        assertEquals(foundSessionUser.getUser().getId(), user.getId());
-        assertEquals(foundSessionUser.getSession().getId(), session.getId());
-        assertEquals(foundSessionUser.getScore(), 0L);
+        assertEquals(user.getId(), foundSessionUser.getUser().getId());
+        assertEquals(session.getId(), foundSessionUser.getSession().getId());
+        assertEquals(0L, foundSessionUser.getScore());
 
     }
 }

@@ -48,7 +48,7 @@ public class SessionService {
         session.setRoundNumber(0);
         session = sessionRepository.save(session);
         sessionRepository.flush();
-        log.debug("Create session with id: %s", session.getId());
+        log.debug("Create session with id: " + session.getIdAsString());
         return session;
     }
 

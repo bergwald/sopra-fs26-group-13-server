@@ -136,7 +136,7 @@ public class DTOMapperTest {
 
 		SessionGetDTO sessionGetDTO = DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(session);
 
-		assertEquals(session.getId(), sessionGetDTO.getId());
+		assertEquals(session.getIdAsString(), sessionGetDTO.getId());
 		assertEquals(session.getRoundNumber(), sessionGetDTO.getRoundNumber());
 		assertEquals(session.getSessionExpiryDateTime(), sessionGetDTO.getSessionExpiryDateTime());
 	}
