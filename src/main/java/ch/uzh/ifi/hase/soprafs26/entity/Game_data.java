@@ -15,10 +15,10 @@ public class Game_data implements Serializable{
 	private Long dataId;
 
 	@Column(nullable = false)
-	private String session_id;
+	private String sessionId;
 
 	@Column(nullable = true)
-	private String image_url;
+	private String imageUrl;
 
 	@Column(nullable = true)
 	private float longitude;
@@ -27,7 +27,7 @@ public class Game_data implements Serializable{
 	private float latitude;
 
 	@Column(nullable = true)
-	private int round_number;
+	private int roundNumber;
 
 	public Long getDataId() {
 		return dataId;
@@ -37,20 +37,20 @@ public class Game_data implements Serializable{
 		this.dataId = dataId;
 	}
 
-	public String getSession_id() {
-		return session_id;
+	public String getSessionId() {
+		return sessionId;
 	}
 
-	public void setSession_id(String session_id) {
-		this.session_id = session_id;
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
-	public String getImage_url() {
-		return image_url;
+	public String getImageUrl() {
+		return imageUrl;
 	}
 
-	public void setImage_url(String image_url) {
-		this.image_url = image_url;
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 
 	public float getLongitude() {
@@ -69,11 +69,11 @@ public class Game_data implements Serializable{
 		this.latitude = latitude;
 	}
 
-	public int getRound_number() {
-		return round_number;
+	public int getRoundNumber() {
+		return roundNumber;
 	}
 
-	public void setRound_number(int round_number) {
-		this.round_number = round_number;
+	public void setRoundNumber(int roundNumber) {
+		this.roundNumber = roundNumber;
 	}
 }
