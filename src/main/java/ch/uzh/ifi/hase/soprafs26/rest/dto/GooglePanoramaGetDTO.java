@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
+// Temporary response contract for the `/google/panorama` demo route.
 public class GooglePanoramaGetDTO {
 
     private String provider;

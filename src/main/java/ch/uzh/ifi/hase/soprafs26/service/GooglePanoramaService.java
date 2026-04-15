@@ -92,6 +92,9 @@ public class GooglePanoramaService {
         this.streetViewSource = streetViewSource;
     }
 
+    // Temporary selection flow backing the `/google/panorama` demo route.
+    // Once rounds are generated through the authenticated game flow, reuse or move
+    // this logic there instead of keeping this public fetch path.
     public GooglePanoramaCandidate fetchPanoramaCandidate() {
         if (apiKey == null || apiKey.isBlank()) {
             throw new ResponseStatusException(SERVICE_UNAVAILABLE, "Google Maps server API key is not configured.");

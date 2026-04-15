@@ -18,6 +18,9 @@ public class GooglePanoramaController {
         this.googlePanoramaService = googlePanoramaService;
     }
 
+    // Temporary integration endpoint for the frontend Street View demo.
+    // This should be removed once panorama selection is wired into the real
+    // session/round game flow.
     @GetMapping("/google/panorama")
     @ResponseStatus(HttpStatus.OK)
     public GooglePanoramaGetDTO getPanoramaCandidate() {
