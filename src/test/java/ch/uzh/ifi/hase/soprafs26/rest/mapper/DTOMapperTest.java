@@ -120,7 +120,7 @@ public class DTOMapperTest {
 		// check content
 		GameData.getDataId();
 		assertEquals(GameData.getSessionId(), gameDataGetDTO.getSessionId());
-		assertEquals(GameData.getImageUrl(), gameDataGetDTO.getWikidataUrl());
+		assertEquals(GameData.getImageUrl(), gameDataGetDTO.getImageUrl());
 		assertEquals(GameData.getRoundNumber(), gameDataGetDTO.getRoundNumber());
 		GameData.getLongitude();
 		GameData.getLatitude();
