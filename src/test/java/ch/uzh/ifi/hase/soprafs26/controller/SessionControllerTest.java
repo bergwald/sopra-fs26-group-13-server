@@ -145,7 +145,7 @@ public class SessionControllerTest {
                 given(sessionService.createNewSession()).willReturn(session);
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
-                given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -153,7 +153,7 @@ public class SessionControllerTest {
                 MockHttpServletRequestBuilder postRequest = post("/session").contentType(MediaType.APPLICATION_JSON)
                                 .content(controllerTestHelper.asJsonString(sessionPost))
                                 .header("Authorization", "Bearer valid-token").header("userId", 1);
-                mockMvc.perform(postRequest).andExpect(status().isOk())
+                mockMvc.perform(postRequest).andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.id", is(session.getId().toString())))
                                 .andExpect(jsonPath("$.roundNumber", is(session.getRoundNumber())))
                                 .andExpect(jsonPath("$.sessionExpiryDateTime",
@@ -169,7 +169,7 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -189,7 +189,7 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(null, null))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -206,7 +206,7 @@ public class SessionControllerTest {
 
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
-                given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
 
                 SessionPutDTO sessionPut = new SessionPutDTO();
                 sessionPut.setUserId(1L);
@@ -232,7 +232,7 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
 
                 SessionPutDTO sessionPut = new SessionPutDTO();
                 sessionPut.setUserId(1L);
@@ -254,7 +254,7 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(null, null))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
 
                 SessionPutDTO sessionPut = new SessionPutDTO();
                 sessionPut.setUserId(1L);
