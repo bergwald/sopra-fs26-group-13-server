@@ -23,6 +23,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 
 public class SessionServiceTest {
 
@@ -90,7 +91,7 @@ public class SessionServiceTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
         when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
 
-        Session joinedSession = sessionService.userJoinSession(1L, mockSession.getId());
+        Session joinedSession = sessionService.userJoinSession(1L, mockSession.getId(), UserSessionRole.OWNER);
 
         assertNotNull(joinedSession);
         assertEquals(mockSession, joinedSession);
