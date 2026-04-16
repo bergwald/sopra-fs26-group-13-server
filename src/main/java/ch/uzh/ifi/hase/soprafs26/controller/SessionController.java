@@ -6,10 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
+import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionUserDetailsGetDTO;
+
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.SessionService;
 
@@ -54,8 +58,35 @@ public class SessionController {
 		return sessionGetDTOs;
 	}
 
-	@PostMapping("/session")
+	@GetMapping("/session/{sessionId}")
 	@ResponseStatus(HttpStatus.OK)
+	public List<SessionUserDetailsGetDTO> getSessionById(
+		@PathVariable String sessionId,
+		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+		@RequestHeader(value = "userId", required = false) Long userId
+	) {
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthorizedTargetUser(userId, token);
+
+		List<SessionUser> sessionUser = sessionService.getAllSessionUser(UUID.fromString(sessionId));
+
+		// Convert to DTOs
+		List<SessionUserDetailsGetDTO> sessionUserDTOs = new ArrayList<>();
+		for (SessionUser su: sessionUser){
+			SessionUserDetailsGetDTO sessionUserDetail = new SessionUserDetailsGetDTO();
+			sessionUserDetail.setId(su.getUser().getId());
+			sessionUserDetail.setSessionId(su.getSession().getIdAsString());
+			sessionUserDetail.setRoundNumber(su.getSession().getRoundNumber());
+			sessionUserDetail.setSessionExpiryDateTime(su.getSession().getSessionExpiryDateTime());
+			sessionUserDetail.setScore(su.getScore());
+			sessionUserDetail.setUserRole(su.getUserRole());
+			sessionUserDTOs.add(sessionUserDetail);
+		}
+		return sessionUserDTOs;
+	}
+
+	@PostMapping("/session")
+	@ResponseStatus(HttpStatus.CREATED)
 	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost,
 		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 		@RequestHeader(value = "userId", required = false) Long userId
@@ -64,7 +95,7 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 		Session createdSession = sessionService.createNewSession();
-		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId());
+		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId(), UserSessionRole.OWNER);
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
 
@@ -77,7 +108,7 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 		Session createdSession = sessionService.userJoinSession(sessionPut.getUserId(),
-				UUID.fromString(sessionPut.getSessionId()));
+				UUID.fromString(sessionPut.getSessionId()), UserSessionRole.PLAYER);
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
 
