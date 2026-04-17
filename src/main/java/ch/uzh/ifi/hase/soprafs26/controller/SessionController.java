@@ -42,9 +42,8 @@ public class SessionController {
 	@GetMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
 	public List<SessionGetDTO> getAllUsers(
-		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-		@RequestHeader(value = "userId", required = false) Long userId
-	) {
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
 		// fetch all sessions in the internal representation
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
@@ -61,10 +60,10 @@ public class SessionController {
 	@GetMapping("/session/{sessionId}")
 	@ResponseStatus(HttpStatus.OK)
 	public List<SessionUserDetailsGetDTO> getSessionById(
-		@PathVariable String sessionId,
-		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-		@RequestHeader(value = "userId", required = false) Long userId
-	) {
+			@PathVariable String sessionId,
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
+
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 
@@ -72,7 +71,7 @@ public class SessionController {
 
 		// Convert to DTOs
 		List<SessionUserDetailsGetDTO> sessionUserDTOs = new ArrayList<>();
-		for (SessionUser su: sessionUser){
+		for (SessionUser su : sessionUser) {
 			SessionUserDetailsGetDTO sessionUserDetail = new SessionUserDetailsGetDTO();
 			sessionUserDetail.setId(su.getUser().getId());
 			sessionUserDetail.setSessionId(su.getSession().getIdAsString());
@@ -88,9 +87,8 @@ public class SessionController {
 	@PostMapping("/session")
 	@ResponseStatus(HttpStatus.CREATED)
 	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost,
-		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-		@RequestHeader(value = "userId", required = false) Long userId
-	) {
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
 		// Creates a new session and returns the new session type
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
@@ -102,9 +100,8 @@ public class SessionController {
 	@PutMapping("/session")
 	@ResponseStatus(HttpStatus.OK)
 	public SessionGetDTO userJoinSession(@RequestBody SessionPutDTO sessionPut,
-		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-		@RequestHeader(value = "userId", required = false) Long userId
-	) {
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 		Session createdSession = sessionService.userJoinSession(sessionPut.getUserId(),
