@@ -70,7 +70,7 @@ public class SessionService {
         return currentSession;
     }
 
-    public List<SessionUser> getAllSessionUser(UUID sessionId) {
+    public List<SessionUser> getAllSessionUser(UUID sessionId) throws ResponseStatusException{
         List<SessionUser> sessionUser = this.sessionUserRepository.findBySessionId(sessionId);
         if (!sessionUser.isEmpty()) {
             return sessionUserRepository.findBySessionId(sessionId);
