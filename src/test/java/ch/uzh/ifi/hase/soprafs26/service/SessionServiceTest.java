@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -13,9 +14,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
@@ -86,7 +90,7 @@ public class SessionServiceTest {
     }
 
     @Test
-    void testUserJoinSession() {
+    void testUserJoinSession_valid() {
         when(sessionRepository.findById(any(UUID.class))).thenReturn(mockSession);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
         when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
@@ -96,5 +100,30 @@ public class SessionServiceTest {
         assertNotNull(joinedSession);
         assertEquals(mockSession, joinedSession);
         verify(sessionUserRepository, times(1)).save(any(SessionUser.class));
+    }
+
+    @Test
+    void testGetAllSessionUser_valid() {
+        when(sessionUserRepository.findBySessionId(any(UUID.class)))
+                .thenReturn(Collections.singletonList(mockSessionUser));
+
+        List<SessionUser> foundSessionUser = sessionService.getAllSessionUser(mockSession.getId());
+        assertNotNull(foundSessionUser);
+        assertEquals(mockSessionUser.getId(), foundSessionUser.get(0).getId());
+        assertEquals(mockSessionUser.getScore(), foundSessionUser.get(0).getScore());
+        assertEquals(mockSessionUser.getUserRole(), foundSessionUser.get(0).getUserRole());
+
+    }
+
+    @Test
+    void testGetAllSessionUser_invalid() {
+        when(sessionUserRepository.findBySessionId(any(UUID.class))).thenReturn(Collections.emptyList());
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> sessionService.getAllSessionUser(mockSession.getId()));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("No user to session associated found!", ex.getReason());
+
     }
 }
