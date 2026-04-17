@@ -57,6 +57,10 @@ public class SessionService {
     public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole UserSessionRole) {
 
         Session currentSession = this.sessionRepository.findById(sessionId);
+        if (currentSession == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+        String.format("Session id %s was not found.", sessionId.toString()));
+        }
         SessionUser newSessionUser = new SessionUser();
         newSessionUser.setScore(0L);
         newSessionUser.setUser(
