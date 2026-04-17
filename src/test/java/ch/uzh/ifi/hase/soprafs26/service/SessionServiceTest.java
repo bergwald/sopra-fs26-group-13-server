@@ -103,6 +103,29 @@ public class SessionServiceTest {
     }
 
     @Test
+    void testUserJoinSession_invalidSessionId() {
+        when(sessionRepository.findById(any(UUID.class))).thenReturn(null);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
+        when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
+
+        ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
+                () -> sessionService.userJoinSession(1L, UUID.randomUUID(), UserSessionRole.OWNER));
+
+        assertEquals(HttpStatus.NOT_FOUND, responseException.getStatusCode());
+    }
+
+    @Test
+    void testUserJoinSession_invalidUserId() {
+        when(sessionRepository.findById(any(UUID.class))).thenReturn(mockSession);
+        when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
+
+        ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
+                () -> sessionService.userJoinSession(1L, UUID.randomUUID(), UserSessionRole.OWNER));
+
+        assertEquals(HttpStatus.NOT_FOUND, responseException.getStatusCode());
+    }
+
+    @Test
     void testGetAllSessionUser_valid() {
         when(sessionUserRepository.findBySessionId(any(UUID.class)))
                 .thenReturn(Collections.singletonList(mockSessionUser));
@@ -119,11 +142,11 @@ public class SessionServiceTest {
     void testGetAllSessionUser_invalid() {
         when(sessionUserRepository.findBySessionId(any(UUID.class))).thenReturn(Collections.emptyList());
 
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
                 () -> sessionService.getAllSessionUser(mockSession.getId()));
 
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertEquals("No user to session associated found!", ex.getReason());
+        assertEquals(HttpStatus.NOT_FOUND, responseException.getStatusCode());
+        assertEquals("No user to session associated found!", responseException.getReason());
 
     }
 }
