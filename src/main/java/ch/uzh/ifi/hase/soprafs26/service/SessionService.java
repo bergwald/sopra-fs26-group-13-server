@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,8 +21,6 @@ import java.time.LocalDateTime;
 @Transactional
 public class SessionService {
     private static final int EXPIRE_HOURS = 2;
-
-    private final Logger log = LoggerFactory.getLogger(SessionService.class);
 
     private final SessionRepository sessionRepository;
     private final SessionUserRepository sessionUserRepository;
@@ -50,7 +46,6 @@ public class SessionService {
         session.setRoundNumber(0);
         session = sessionRepository.save(session);
         sessionRepository.flush();
-        log.debug("Create session with id: " + session.getIdAsString());
         return session;
     }
 
@@ -59,7 +54,12 @@ public class SessionService {
         Session currentSession = this.sessionRepository.findById(sessionId);
         if (currentSession == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-        String.format("Session id %s was not found.", sessionId.toString()));
+                    String.format("Session id %s was not found.", sessionId.toString()));
+        }
+        if (currentSession.getRoundNumber() != 0) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    String.format("Session with id %s is already in progress. You can't join this session.",
+                            sessionId.toString()));
         }
         SessionUser newSessionUser = new SessionUser();
         newSessionUser.setScore(0L);
@@ -74,7 +74,7 @@ public class SessionService {
         return currentSession;
     }
 
-    public List<SessionUser> getAllSessionUser(UUID sessionId) throws ResponseStatusException{
+    public List<SessionUser> getAllSessionUser(UUID sessionId) throws ResponseStatusException {
         List<SessionUser> sessionUser = this.sessionUserRepository.findBySessionId(sessionId);
         if (!sessionUser.isEmpty()) {
             return sessionUserRepository.findBySessionId(sessionId);
@@ -82,4 +82,5 @@ public class SessionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user to session associated found!");
         }
     }
+
 }

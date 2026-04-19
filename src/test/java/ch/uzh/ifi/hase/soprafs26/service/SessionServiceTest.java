@@ -126,6 +126,18 @@ public class SessionServiceTest {
     }
 
     @Test
+    void testUserJoinSession_ongoingSession() {
+        mockSession.setRoundNumber(1);
+        when(sessionRepository.findById(any(UUID.class))).thenReturn(mockSession);
+        when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
+
+        ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
+                () -> sessionService.userJoinSession(1L, UUID.randomUUID(), UserSessionRole.PLAYER));
+
+        assertEquals(HttpStatus.FORBIDDEN, responseException.getStatusCode());
+    }
+
+    @Test
     void testGetAllSessionUser_valid() {
         when(sessionUserRepository.findBySessionId(any(UUID.class)))
                 .thenReturn(Collections.singletonList(mockSessionUser));
