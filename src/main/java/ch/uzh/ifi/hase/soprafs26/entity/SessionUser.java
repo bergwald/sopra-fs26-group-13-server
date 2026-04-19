@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.io.Serializable;
 
+import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
+
 @Entity
 @Table(name = "sessionuser")
 public class SessionUser implements Serializable {
@@ -25,11 +27,14 @@ public class SessionUser implements Serializable {
     @Column(nullable = false)
     private long score = 0L;
 
-    public Long getId(){
+    @Column(nullable = false)
+    private UserSessionRole userRole = UserSessionRole.OWNER;
+
+    public Long getId() {
         return this.id;
     }
 
-    public void setId(Long id){
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -57,4 +62,11 @@ public class SessionUser implements Serializable {
         this.score = score;
     }
 
+    public UserSessionRole getUserRole() {
+        return this.userRole;
+    }
+
+    public void setUserRole(UserSessionRole userRole) {
+        this.userRole = userRole;
+    }
 }

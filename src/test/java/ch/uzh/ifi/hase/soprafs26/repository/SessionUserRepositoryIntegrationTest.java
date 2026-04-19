@@ -4,6 +4,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
+import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
@@ -58,6 +59,7 @@ public class SessionUserRepositoryIntegrationTest {
         assertEquals(user.getId(), foundSessionUser.getUser().getId());
         assertEquals(session.getId(), foundSessionUser.getSession().getId());
         assertEquals(0L, foundSessionUser.getScore());
+        assertEquals(UserSessionRole.OWNER, foundSessionUser.getUserRole());
 
     }
 }
