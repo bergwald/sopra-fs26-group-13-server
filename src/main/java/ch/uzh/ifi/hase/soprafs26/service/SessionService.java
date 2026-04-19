@@ -66,18 +66,30 @@ public class SessionService {
                     String.format("Session with id %s is already in progress. You can't join this session.",
                             sessionId.toString()));
         }
+        SessionUser sessionUser = sessionUserRepository.findById(userId)
+                .orElse(createNewSessionUser(userId, sessionId, UserSessionRole));
 
+        this.sessionUserRepository.save(sessionUser);
+        this.sessionUserRepository.flush();
+        return currentSession;
+    }
+
+    public SessionUser createNewSessionUser(Long userId, UUID sessionId, UserSessionRole userSessionRole)
+            throws ResponseStatusException {
         SessionUser newSessionUser = new SessionUser();
         newSessionUser.setScore(0L);
         newSessionUser.setUser(
                 this.userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         String.format("User with id %d was not found.", userId))));
+        Session session = this.sessionRepository.findById(sessionId);
 
-        newSessionUser.setSession(this.sessionRepository.findById(sessionId));
-        newSessionUser.setUserRole(UserSessionRole);
-        this.sessionUserRepository.save(newSessionUser);
-        this.sessionUserRepository.flush();
-        return currentSession;
+        if (userSessionRole == UserSessionRole.OWNER) {
+            session = increaseSessionExpiryDate(session);
+        }
+
+        newSessionUser.setSession(session);
+        newSessionUser.setUserRole(userSessionRole);
+        return newSessionUser;
     }
 
     public List<SessionUser> getAllSessionUser(UUID sessionId) throws ResponseStatusException {
@@ -87,6 +99,31 @@ public class SessionService {
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user to session associated found!");
         }
+    }
+
+    public Session validateSessionExpiryDate(Session session) {
+        if (session.getSessionExpiryDateTime().isAfter(LocalDateTime.now().plusHours(EXPIRE_HOURS))) {
+            deleteSession(session);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    String.format("Session id %s is expired.", session.getIdAsString()));
+        }
+        return session;
+    }
+
+    public Session increaseSessionExpiryDate(Session session) {
+        session.setSessionExpiryDateTime(LocalDateTime.now().plusHours(EXPIRE_HOURS));
+        return session;
+    }
+
+    public void deleteSession(Session session) {
+        /* Deletes a session with the key constraint corresponding sessionUser table. */
+        List<SessionUser> sessionUsers = getAllSessionUser(session.getId());
+        for (SessionUser su : sessionUsers) {
+            this.sessionUserRepository.delete(su);
+        }
+        this.sessionUserRepository.flush();
+        this.sessionRepository.delete(session);
+        this.sessionRepository.flush();
     }
 
 }
