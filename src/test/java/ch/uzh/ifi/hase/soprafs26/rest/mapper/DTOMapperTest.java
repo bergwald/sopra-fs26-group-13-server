@@ -11,6 +11,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
 
 import java.time.Instant;
@@ -104,8 +105,8 @@ public class DTOMapperTest {
 	}
 
 	@Test
-	public void testGetGame_data_fromGameDataGetDTO_data_toGame_data_success() {
-		// create User
+	public void test_getSessionRoundURL_from_GameData_to_GameDataGetDTO_success() {
+		// create Game_data
 		Game_data GameData = new Game_data();
 		GameData.setDataId(Long.valueOf(123456));
 		GameData.setSessionId("Session11111");
@@ -124,6 +125,21 @@ public class DTOMapperTest {
 		assertEquals(GameData.getRoundNumber(), gameDataGetDTO.getRoundNumber());
 		GameData.getLongitude();
 		GameData.getLatitude();
+	}
+
+	@Test
+	public void test_getSessionRoundURL_from_GameGetDTO_to_GameData_success() {
+		// create GameGetDTO
+		GameGetDTO gameGetDTO = new GameGetDTO();
+		gameGetDTO.setSessionId("Session1234");
+		gameGetDTO.setRoundNumber(2);
+
+		// MAP -> Create Game_data
+		Game_data gameData = DTOMapper.INSTANCE.convertGameGetDTOToEntity(gameGetDTO);
+
+		// check content
+		assertEquals(gameData.getSessionId(), gameGetDTO.getSessionId());
+		assertEquals(gameData.getRoundNumber(), gameGetDTO.getRoundNumber());
 	}
 
 	@Test
