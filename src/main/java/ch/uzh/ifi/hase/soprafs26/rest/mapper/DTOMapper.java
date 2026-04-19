@@ -14,6 +14,8 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
 
 /**
  * DTOMapper
@@ -77,5 +79,21 @@ public interface DTOMapper {
 	@Mapping(source = "sessionExpiryDateTime", target = "sessionExpiryDateTime")
 	@Mapping(source = "roundNumber", target = "roundNumber")
 	SessionGetDTO convertEntitityToSessionGetDTO(Session session);
+
+	@Mapping(source = "sessionId", target = "sessionId")
+	@Mapping(source = "roundNumber", target = "roundNumber")
+	@Mapping(target = "dataId", ignore = true)
+	@Mapping(target = "imageUrl", ignore = true)
+	@Mapping(target = "longitude", ignore = true)
+	@Mapping(target = "latitude", ignore = true)
+	Game_data convertUserGuessPutDTOToEntity(UserGuessPutDTO userGuess);
+
+	@Mapping(source = "gameData.latitude", target = "latitude")
+	@Mapping(source = "gameData.longitude", target = "longitude")
+	@Mapping(source = "distance", target = "distance")
+	@Mapping(source = "scoreRound", target = "scoreRound")
+	@Mapping(source = "scoreOverall", target = "scoreOverall")
+	UserAnswerPutDTO convertEntityToUserAnswerPutDTO(Game_data gameData, double distance, int scoreRound,
+			long scoreOverall);
 
 }

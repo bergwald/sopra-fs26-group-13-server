@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
 
@@ -13,4 +14,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SessionUserRepository extends JpaRepository<SessionUser, Long> {
     SessionUser findById(String id);
     List<SessionUser> findBySessionId(UUID sessionId);
+
+    Optional<SessionUser> findByUserIdAndSessionId(Long userId, UUID sessionId);
 }

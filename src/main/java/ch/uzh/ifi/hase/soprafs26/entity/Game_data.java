@@ -21,10 +21,10 @@ public class Game_data implements Serializable{
 	private String imageUrl;
 
 	@Column(nullable = true)
-	private float longitude;
+	private double longitude;
 
 	@Column(nullable = true)
-	private float latitude;
+	private double latitude;
 
 	@Column(nullable = true)
 	private int roundNumber;
@@ -53,19 +53,19 @@ public class Game_data implements Serializable{
 		this.imageUrl = imageUrl;
 	}
 
-	public float getLongitude() {
+	public double getLongitude() {
 		return longitude;
 	}
 
-	public void setLongitude(float longitude) {
+	public void setLongitude(double longitude) {
 		this.longitude = longitude;
 	}
 
-	public float getLatitude() {
+	public double getLatitude() {
 		return latitude;
 	}
 
-	public void setLatitude(float latitude) {
+	public void setLatitude(double latitude) {
 		this.latitude = latitude;
 	}
 

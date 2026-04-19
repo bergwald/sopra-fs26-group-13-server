@@ -13,6 +13,8 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -155,5 +157,51 @@ public class DTOMapperTest {
 		assertEquals(session.getIdAsString(), sessionGetDTO.getId());
 		assertEquals(session.getRoundNumber(), sessionGetDTO.getRoundNumber());
 		assertEquals(session.getSessionExpiryDateTime(), sessionGetDTO.getSessionExpiryDateTime());
+	}
+
+	@Test
+	public void test_submitGuess_from_UserGuessPutDTO_to_Game_data_lookup_success() {
+		UserGuessPutDTO guess = new UserGuessPutDTO();
+		guess.setUserId(5L);
+		guess.setSessionId("session-uuid-string");
+		guess.setRoundNumber(4);
+		guess.setLatitude(47.3);
+		guess.setLongitude(8.5);
+
+		assertEquals(5L, guess.getUserId());
+		assertEquals("session-uuid-string", guess.getSessionId());
+		assertEquals(47.3, guess.getLatitude(), 0d);
+		assertEquals(8.5, guess.getLongitude(), 0d);
+
+		Game_data lookup = DTOMapper.INSTANCE.convertUserGuessPutDTOToEntity(guess);
+
+		assertEquals(guess.getSessionId(), lookup.getSessionId());
+		assertEquals(4, lookup.getRoundNumber());
+	}
+
+	@Test
+	public void test_submitGuess_from_Game_data_and_scores_to_UserAnswerPutDTO_success() {
+		Game_data gameData = new Game_data();
+		gameData.setLatitude(46.95d);
+		gameData.setLongitude(7.44d);
+
+		UserAnswerPutDTO answer = DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, 12.5d, 88, 200L);
+
+		assertEquals(gameData.getLatitude(), answer.getLatitude(), 1e-6);
+		assertEquals(gameData.getLongitude(), answer.getLongitude(), 1e-6);
+		assertEquals(12.5d, answer.getDistance(), 0d);
+		assertEquals(88, answer.getScoreRound());
+		assertEquals(200L, answer.getScoreOverall());
+
+		answer.setLatitude(1.0d);
+		answer.setLongitude(2.0d);
+		answer.setDistance(3.0d);
+		answer.setScoreRound(10);
+		answer.setScoreOverall(99L);
+		assertEquals(1.0d, answer.getLatitude());
+		assertEquals(2.0d, answer.getLongitude());
+		assertEquals(3.0d, answer.getDistance());
+		assertEquals(10, answer.getScoreRound());
+		assertEquals(99L, answer.getScoreOverall());
 	}
 }
