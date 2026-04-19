@@ -24,7 +24,7 @@ public class GameDataRepositoryIntegrationTest {
 		// given
 		Game_data gameData = new Game_data();
 		gameData.setSessionId("Session1234");
-		gameData.setImageUrl("wikipictures.com/nr");
+		gameData.setImageUrl("example.com/panorama-image");
 		gameData.setLongitude(1.234f);
 		gameData.setLatitude(5.678f);
 		gameData.setRoundNumber(1);

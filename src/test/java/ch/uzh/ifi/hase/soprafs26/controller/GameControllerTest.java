@@ -14,6 +14,14 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
 import ch.uzh.ifi.hase.soprafs26.service.GuessEvaluationService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,23 +55,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * request without actually sending them over the network.
  * This tests if the UserController works.
  */
+import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
+import ch.uzh.ifi.hase.soprafs26.service.GameService;
+import ch.uzh.ifi.hase.soprafs26.service.UserService;
+
 @WebMvcTest(GameController.class)
 public class GameControllerTest {
 
-	@Autowired
-	private MockMvc mockMvc;
+    private final ControllerTestHelper controllerTestHelper = new ControllerTestHelper();
 
-	@MockitoBean
-	private GameService gameService;
+    @Autowired
+    private MockMvc mockMvc;
 
-	@MockitoBean
-	private UserService userService;
+    @MockitoBean
+    private GameService gameService;
 
 	@MockitoBean
 	private GuessEvaluationService guessEvaluationService;
 
 	@MockitoBean
 	private SessionRepository sessionRepository;
+
+	@MockitoBean
+	private UserService userService;
 
 	private User sampleUser() {
         User user = new User();
@@ -77,61 +94,54 @@ public class GameControllerTest {
         return user;
     }
 
-	/**
-	 * Tests GET /users and verifies it returns all users as a JSON array (200
-	 * status).
-	 * GIVEN
-	 */
-	@Test
-	public void getSessionRoundURL_200() throws Exception {
-		//given
-		given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+    @Test
+    void givenAuthorizedUser_whenGetGameData_thenReturnJson() throws Exception {
+        GameGetDTO requestBody = new GameGetDTO();
+        requestBody.setSessionId("SessionId1234");
+        requestBody.setRoundNumber(3);
+
+        Game_data gameData = new Game_data();
+        gameData.setSessionId("SessionId1234");
+        gameData.setImageUrl("https://example.com/panorama");
+        gameData.setLongitude(1.0f);
+        gameData.setLatitude(4.0f);
+        gameData.setRoundNumber(3);
+
         given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+        given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+        given(gameService.getSessionRoundData(any(Game_data.class))).willReturn(gameData);
 
-		Game_data gameData = new Game_data();
-		gameData.setSessionId("SessionId1234");
-		gameData.setImageUrl("wikidata.com/nr");
-		gameData.setLongitude(1.0f);
-		gameData.setLatitude(4.0f);
-		gameData.setRoundNumber(3);
+        MockHttpServletRequestBuilder getRequest = get("/game_data")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(controllerTestHelper.asJsonString(requestBody))
+                .header("Authorization", "Bearer valid-token")
+                .header("userId", 1L);
 
-		GameDataGetDTO gameGet = new GameDataGetDTO();
+        mockMvc.perform(getRequest)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageUrl", is(gameData.getImageUrl())))
+                .andExpect(jsonPath("$.roundNumber", is(gameData.getRoundNumber())))
+                .andExpect(jsonPath("$.sessionId", is(gameData.getSessionId())));
+    }
 
-		given(gameService.getSessionRoundData(any())).willReturn(gameData);
-		MockHttpServletRequestBuilder getRequest = get("/game_data").contentType(MediaType.APPLICATION_JSON).content(asJsonString(gameGet));
-		mockMvc.perform(getRequest).andExpect(status().isOk())
-			.andExpect(jsonPath("$.wikidataUrl", is(gameData.getImageUrl())))
-			.andExpect(jsonPath("$.roundNumber", is(gameData.getRoundNumber())))
-			.andExpect(jsonPath("$.sessionId", is(gameData.getSessionId())));
-	
-	}
-	@Test
-	public void getSessionRoundURL_400() throws Exception {
-		//given
-		given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
-        given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+    @Test
+    void givenUnauthorizedUser_whenGetGameData_thenReturnUnauthorized() throws Exception {
+        GameGetDTO requestBody = new GameGetDTO();
+        requestBody.setSessionId("SessionId1234");
+        requestBody.setRoundNumber(3);
 
-		GameDataGetDTO gameGet = new GameDataGetDTO();
-
-		given(gameService.getSessionRoundData(any())).willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST));
-		MockHttpServletRequestBuilder getRequest = get("/game_data").contentType(MediaType.APPLICATION_JSON).content(asJsonString(gameGet));
-		mockMvc.perform(getRequest).andExpect(status().isBadRequest());
-	
-	}
-
-	public void getSessionRoundURL_401() throws Exception {
-		//given
-		given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
         given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
+        given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
+                .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 
-		GameDataGetDTO gameGet = new GameDataGetDTO();
-		Game_data gameData = new Game_data();
+        MockHttpServletRequestBuilder getRequest = get("/game_data")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(controllerTestHelper.asJsonString(requestBody))
+                .header("Authorization", "Bearer invalid-token")
+                .header("userId", 1L);
+        mockMvc.perform(getRequest).andExpect(status().isUnauthorized());
+    }
 
-		given(gameService.getSessionRoundData(any())).willReturn(gameData);
-		MockHttpServletRequestBuilder getRequest = get("/game_data").contentType(MediaType.APPLICATION_JSON).content(asJsonString(gameGet));
-		mockMvc.perform(getRequest).andExpect(status().isUnauthorized());
-	
-	}
 	@Test
 	public void makeGuess_200() throws Exception {
 		UUID sessionUuid = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
@@ -204,5 +214,26 @@ public class GameControllerTest {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("The request body could not be created.%s", e.toString()));
         }
+	}
+
+
+    @Test
+    void givenMissingGameData_whenGetGameData_thenReturnNotFound() throws Exception {
+        GameGetDTO requestBody = new GameGetDTO();
+        requestBody.setSessionId("SessionId1234");
+        requestBody.setRoundNumber(3);
+
+        given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+        given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+        given(gameService.getSessionRoundData(any(Game_data.class)))
+                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Game data not found"));
+
+        MockHttpServletRequestBuilder getRequest = get("/game_data")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(controllerTestHelper.asJsonString(requestBody))
+                .header("Authorization", "Bearer valid-token")
+                .header("userId", 1L);
+
+        mockMvc.perform(getRequest).andExpect(status().isNotFound());
     }
 }

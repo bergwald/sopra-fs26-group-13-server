@@ -1,19 +1,17 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-
 public class GameDataGetDTO {
 
-	private String wikidataUrl;
+	private String imageUrl;
 	private int roundNumber;
 	private String sessionId;
 
-	public String getWikidataUrl() {
-		return wikidataUrl;
+	public String getImageUrl() {
+		return imageUrl;
 	}
 
-	public void setWikidataUrl(String wikidataUrl) {
-		this.wikidataUrl = wikidataUrl;
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 
 	public int getRoundNumber() {
