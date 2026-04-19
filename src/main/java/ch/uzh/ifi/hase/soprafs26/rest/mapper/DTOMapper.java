@@ -65,7 +65,7 @@ public interface DTOMapper {
 	UserRegisterResponseDTO convertEntityToUserRegisterResponseDTO(User user);
 
 	@Mapping(source = "sessionId", target = "sessionId")
-	@Mapping(source = "imageUrl", target = "wikidataUrl")
+	@Mapping(source = "imageUrl", target = "imageUrl")
 	@Mapping(source = "roundNumber", target = "roundNumber")
 	GameDataGetDTO convertEntityToGameDataGetDTO(Game_data game_data);
 

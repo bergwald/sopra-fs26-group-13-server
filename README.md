@@ -14,6 +14,18 @@ Frontend deployment URL: https://sopra-fs26-group-13-client.vercel.app
 
 Run all tests by running `bash gradlew test` (or `Tasks > verification > test` through the VSCode Gradle extension). 
 
+## Local Secrets
+
+The application loads a gitignored `local.properties` file automatically at startup.
+
+Example:
+
+```properties
+google.maps.api-key=GOOGLE_MAPS_SERVER_API_KEY
+```
+
+This overrides the empty default in `application.properties` without committing secrets to Git.
+
 ## Notes
 
 ### Java Persistence API (JPA)
@@ -119,4 +131,3 @@ Existing Gradle tasks in this project:
 
 - `build`
 - `bootRun`
-

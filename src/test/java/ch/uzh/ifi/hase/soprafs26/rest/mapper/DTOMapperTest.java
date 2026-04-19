@@ -110,7 +110,7 @@ public class DTOMapperTest {
 		Game_data GameData = new Game_data();
 		GameData.setDataId(Long.valueOf(123456));
 		GameData.setSessionId("Session11111");
-		GameData.setImageUrl("wikiimage.com/imagenr");
+		GameData.setImageUrl("example.com/panorama-image");
 		GameData.setLongitude(1.0f);
 		GameData.setLatitude(4.0f);
 		GameData.setRoundNumber(3);
@@ -121,7 +121,7 @@ public class DTOMapperTest {
 		// check content
 		GameData.getDataId();
 		assertEquals(GameData.getSessionId(), gameDataGetDTO.getSessionId());
-		assertEquals(GameData.getImageUrl(), gameDataGetDTO.getWikidataUrl());
+		assertEquals(GameData.getImageUrl(), gameDataGetDTO.getImageUrl());
 		assertEquals(GameData.getRoundNumber(), gameDataGetDTO.getRoundNumber());
 		GameData.getLongitude();
 		GameData.getLatitude();
