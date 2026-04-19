@@ -46,6 +46,8 @@ public class GameServiceTest {
 		when(gameDataRepository.findBySessionIdAndRoundNumber(anyString(), anyInt())).thenReturn(gameDataOut);
 
 		Game_data mockGameDataIn = new Game_data();
+		mockGameDataIn.setSessionId("SessionId1234");
+		mockGameDataIn.setRoundNumber(2);
 		Game_data actualgameDataOut = gameService.getSessionRoundData(mockGameDataIn);
 
 		assertEquals(actualgameDataOut.getSessionId(), gameDataOut.getSessionId());
