@@ -17,19 +17,22 @@ import org.springframework.web.server.ResponseStatusException;
 public class GooglePanoramaServiceTest {
 
     private GoogleMapsHttpClient googleMapsHttpClient;
+    private GoogleMapsApiKeyProvider googleMapsApiKeyProvider;
 
     @BeforeEach
     void setUp() {
         googleMapsHttpClient = mock(GoogleMapsHttpClient.class);
+        googleMapsApiKeyProvider = mock(GoogleMapsApiKeyProvider.class);
+        when(googleMapsApiKeyProvider.getApiKey()).thenReturn("server-key");
     }
 
     @Test
     void fetchPanoramaCandidate_returnsPanoramaFromSelectedRegion() {
         GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
                 googleMapsHttpClient,
+                googleMapsApiKeyProvider,
                 new FixedRandom(0, 0, 0),
                 List.of(new GooglePanoramaService.SearchRegion("Alps", 6.0, 45.0, 7.0, 46.0)),
-                "server-key",
                 "https://maps.googleapis.com/maps/api/elevation/json",
                 "https://maps.googleapis.com/maps/api/streetview/metadata",
                 1000,
@@ -71,11 +74,11 @@ public class GooglePanoramaServiceTest {
     void fetchPanoramaCandidate_skipsLowAltitudePointsAndFallsBackToNextRegion() {
         GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
                 googleMapsHttpClient,
+                googleMapsApiKeyProvider,
                 new FixedRandom(0, 0, 0, 0, 0),
                 List.of(
                         new GooglePanoramaService.SearchRegion("LowRegion", 6.0, 45.0, 7.0, 46.0),
                         new GooglePanoramaService.SearchRegion("HighRegion", 10.0, 47.0, 11.0, 48.0)),
-                "server-key",
                 "https://maps.googleapis.com/maps/api/elevation/json",
                 "https://maps.googleapis.com/maps/api/streetview/metadata",
                 1000,
@@ -124,9 +127,9 @@ public class GooglePanoramaServiceTest {
     void fetchPanoramaCandidate_buildsMetadataRequestWithRadiusAndSource() {
         GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
                 googleMapsHttpClient,
+                googleMapsApiKeyProvider,
                 new FixedRandom(0, 0, 0),
                 List.of(new GooglePanoramaService.SearchRegion("Alps", 6.0, 45.0, 7.0, 46.0)),
-                "server-key",
                 "https://maps.googleapis.com/maps/api/elevation/json",
                 "https://maps.googleapis.com/maps/api/streetview/metadata",
                 1000,
@@ -167,12 +170,17 @@ public class GooglePanoramaServiceTest {
     }
 
     @Test
-    void fetchPanoramaCandidate_whenApiKeyMissing_thenThrowServiceUnavailable() {
+    void fetchPanoramaCandidate_whenApiKeyProviderFails_thenThrowServiceUnavailable() {
+        when(googleMapsApiKeyProvider.getApiKey())
+                .thenThrow(new ResponseStatusException(
+                        org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                        "Google Maps API key is not configured locally or through Secret Manager."));
+
         GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
                 googleMapsHttpClient,
+                googleMapsApiKeyProvider,
                 new FixedRandom(0),
                 List.of(new GooglePanoramaService.SearchRegion("Alps", 6.0, 45.0, 7.0, 46.0)),
-                "",
                 "https://maps.googleapis.com/maps/api/elevation/json",
                 "https://maps.googleapis.com/maps/api/streetview/metadata",
                 1000,
@@ -190,9 +198,9 @@ public class GooglePanoramaServiceTest {
     void fetchPanoramaCandidate_whenNoPanoramaFound_thenThrowNotFound() {
         GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
                 googleMapsHttpClient,
+                googleMapsApiKeyProvider,
                 new FixedRandom(0, 0, 0),
                 List.of(new GooglePanoramaService.SearchRegion("Alps", 6.0, 45.0, 7.0, 46.0)),
-                "server-key",
                 "https://maps.googleapis.com/maps/api/elevation/json",
                 "https://maps.googleapis.com/maps/api/streetview/metadata",
                 1000,

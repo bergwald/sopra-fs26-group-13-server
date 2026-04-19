@@ -18,7 +18,6 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Service
 public class GooglePanoramaService {
@@ -34,10 +33,10 @@ public class GooglePanoramaService {
             new SearchRegion("Southern Alps", 167.05, -45.95, 171.10, -42.15));
 
     private final GoogleMapsHttpClient googleMapsHttpClient;
+    private final GoogleMapsApiKeyProvider googleMapsApiKeyProvider;
     private final ObjectMapper objectMapper;
     private final Random random;
     private final List<SearchRegion> searchRegions;
-    private final String apiKey;
     private final String elevationEndpoint;
     private final String streetViewMetadataEndpoint;
     private final int minimumElevationMeters;
@@ -48,7 +47,7 @@ public class GooglePanoramaService {
     @Autowired
     public GooglePanoramaService(
             GoogleMapsHttpClient googleMapsHttpClient,
-            @Value("${google.maps.api-key:}") String apiKey,
+            GoogleMapsApiKeyProvider googleMapsApiKeyProvider,
             @Value("${google.maps.elevation-endpoint}") String elevationEndpoint,
             @Value("${google.maps.streetview-metadata-endpoint}") String streetViewMetadataEndpoint,
             @Value("${google.maps.minimum-elevation-meters}") int minimumElevationMeters,
@@ -57,9 +56,9 @@ public class GooglePanoramaService {
             @Value("${google.maps.streetview-source}") String streetViewSource) {
         this(
                 googleMapsHttpClient,
+                googleMapsApiKeyProvider,
                 new Random(),
                 DEFAULT_SEARCH_REGIONS,
-                apiKey,
                 elevationEndpoint,
                 streetViewMetadataEndpoint,
                 minimumElevationMeters,
@@ -70,9 +69,9 @@ public class GooglePanoramaService {
 
     GooglePanoramaService(
             GoogleMapsHttpClient googleMapsHttpClient,
+            GoogleMapsApiKeyProvider googleMapsApiKeyProvider,
             Random random,
             List<SearchRegion> searchRegions,
-            String apiKey,
             String elevationEndpoint,
             String streetViewMetadataEndpoint,
             int minimumElevationMeters,
@@ -80,10 +79,10 @@ public class GooglePanoramaService {
             int maxAttemptsPerRegion,
             String streetViewSource) {
         this.googleMapsHttpClient = googleMapsHttpClient;
+        this.googleMapsApiKeyProvider = googleMapsApiKeyProvider;
         this.objectMapper = new ObjectMapper();
         this.random = random;
         this.searchRegions = List.copyOf(searchRegions);
-        this.apiKey = apiKey;
         this.elevationEndpoint = elevationEndpoint;
         this.streetViewMetadataEndpoint = streetViewMetadataEndpoint;
         this.minimumElevationMeters = minimumElevationMeters;
@@ -96,17 +95,15 @@ public class GooglePanoramaService {
     // Once rounds are generated through the authenticated game flow, reuse or move
     // this logic there instead of keeping this public fetch path.
     public GooglePanoramaCandidate fetchPanoramaCandidate() {
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new ResponseStatusException(SERVICE_UNAVAILABLE, "Google Maps server API key is not configured.");
-        }
         if (searchRegions.isEmpty()) {
             throw new ResponseStatusException(NOT_FOUND, "No panorama search regions are configured.");
         }
 
+        String apiKey = googleMapsApiKeyProvider.getApiKey();
         int startIndex = random.nextInt(searchRegions.size());
         for (int regionOffset = 0; regionOffset < searchRegions.size(); regionOffset++) {
             SearchRegion region = searchRegions.get((startIndex + regionOffset) % searchRegions.size());
-            GooglePanoramaCandidate candidate = tryFindPanoramaInRegion(region);
+            GooglePanoramaCandidate candidate = tryFindPanoramaInRegion(region, apiKey);
             if (candidate != null) {
                 return candidate;
             }
@@ -115,14 +112,14 @@ public class GooglePanoramaService {
         throw new ResponseStatusException(NOT_FOUND, "No Street View panorama found in the configured mountain regions.");
     }
 
-    private GooglePanoramaCandidate tryFindPanoramaInRegion(SearchRegion region) {
+    private GooglePanoramaCandidate tryFindPanoramaInRegion(SearchRegion region, String apiKey) {
         for (int attempt = 0; attempt < maxAttemptsPerRegion; attempt++) {
             SamplePoint point = randomPoint(region);
-            if (!passesElevationThreshold(point)) {
+            if (!passesElevationThreshold(point, apiKey)) {
                 continue;
             }
 
-            GooglePanoramaCandidate candidate = lookupPanorama(point);
+            GooglePanoramaCandidate candidate = lookupPanorama(point, apiKey);
             if (candidate != null) {
                 return candidate;
             }
@@ -137,7 +134,7 @@ public class GooglePanoramaService {
         return new SamplePoint(latitude, longitude);
     }
 
-    private boolean passesElevationThreshold(SamplePoint point) {
+    private boolean passesElevationThreshold(SamplePoint point, String apiKey) {
         URI requestUri = URI.create(elevationEndpoint
                 + "?locations=" + encodeCoordinatePair(point.latitude(), point.longitude())
                 + "&key=" + encodeValue(apiKey));
@@ -157,7 +154,7 @@ public class GooglePanoramaService {
         throw googleMapsError("Elevation API", status, message);
     }
 
-    private GooglePanoramaCandidate lookupPanorama(SamplePoint point) {
+    private GooglePanoramaCandidate lookupPanorama(SamplePoint point, String apiKey) {
         StringBuilder uriBuilder = new StringBuilder(streetViewMetadataEndpoint)
                 .append("?location=")
                 .append(encodeCoordinatePair(point.latitude(), point.longitude()))
