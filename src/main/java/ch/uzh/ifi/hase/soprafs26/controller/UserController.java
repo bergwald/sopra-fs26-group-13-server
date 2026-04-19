@@ -34,7 +34,6 @@ public class UserController {
 
 	@GetMapping("/users")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public List<UserGetDTO> getAllUsers() {
 		// fetch all users in the internal representation
 		List<User> users = userService.getUsers();
@@ -49,7 +48,6 @@ public class UserController {
 
 	@GetMapping("/users/{userId}")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public UserProfileGetDTO getUserById(@PathVariable("userId") Long userId) {
 		User user = userService.getUserById(userId);
 		return DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
@@ -57,7 +55,6 @@ public class UserController {
 
 	@PostMapping("/users")
 	@ResponseStatus(HttpStatus.CREATED)
-	@ResponseBody
 	public UserRegisterResponseDTO createUser(@RequestBody UserPostDTO userPostDTO) {
 		// convert API user to internal representation
 		User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
@@ -70,7 +67,6 @@ public class UserController {
 
 	@PostMapping("/login")
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public UserRegisterResponseDTO loginUser(@RequestBody UserLoginDTO userLoginDTO) {
 		User loggedInUser = userService.loginUser(userLoginDTO.getUsername(), userLoginDTO.getPassword());
 		return DTOMapper.INSTANCE.convertEntityToUserRegisterResponseDTO(loggedInUser);

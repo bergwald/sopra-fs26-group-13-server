@@ -238,8 +238,10 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
+		String longBio = "a".repeat(281);
+
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-				() -> userService.updateUser(1L, "valid-token", "a".repeat(281), null));
+				() -> userService.updateUser(1L, "valid-token", longBio, null));
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
@@ -271,7 +273,8 @@ public class UserServiceTest {
 	public void getUserById_userDoesNotExist_throwsNotFoundException() {
 		Mockito.when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.getUserById(999L));
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getUserById(999L));
 		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
 		assertEquals("User with id 999 was not found.", exception.getReason());
 	}

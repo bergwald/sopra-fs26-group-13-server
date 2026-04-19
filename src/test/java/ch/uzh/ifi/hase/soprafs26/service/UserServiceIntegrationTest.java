@@ -218,9 +218,10 @@ public class UserServiceIntegrationTest {
 		testUser.setUsername("testUsername");
 		testUser.setBio("Short bio");
 		User createdUser = userService.createUser(testUser, "oldPassword123");
+		String token = createdUser.getToken();
 
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-				() -> userService.updateUser(999L, createdUser.getToken(), null, "newPassword123"));
+				() -> userService.updateUser(999L, token, null, "newPassword123"));
 		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
 	}
 
@@ -237,9 +238,10 @@ public class UserServiceIntegrationTest {
 		userTwo.setUsername("userTwo");
 		userTwo.setBio("Two");
 		User createdUserTwo = userService.createUser(userTwo, "password123");
-
+		String tokenUserOne = createdUserOne.getToken();
+		Long userTwoId = createdUserTwo.getId();
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-				() -> userService.updateUser(createdUserTwo.getId(), createdUserOne.getToken(), null, "newPassword123"));
+				() -> userService.updateUser(userTwoId, tokenUserOne, null, "newPassword123"));
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 	}
 
@@ -250,9 +252,12 @@ public class UserServiceIntegrationTest {
 		testUser.setUsername("testUsername");
 		testUser.setBio("Short bio");
 		User createdUser = userService.createUser(testUser, "oldPassword123");
+		String token = createdUser.getToken();
+		Long userId = createdUser.getId();
+		String longBio = "a".repeat(281);
 
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-				() -> userService.updateUser(createdUser.getId(), createdUser.getToken(), "a".repeat(281), null));
+				() -> userService.updateUser(userId, token, longBio, null));
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
@@ -263,15 +268,17 @@ public class UserServiceIntegrationTest {
 		testUser.setUsername("testUsername");
 		testUser.setBio("Short bio");
 		User createdUser = userService.createUser(testUser, "oldPassword123");
-
+		String token = createdUser.getToken();
+		Long userId = createdUser.getId();
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-				() -> userService.updateUser(createdUser.getId(), createdUser.getToken(), null, null));
+				() -> userService.updateUser(userId, token, null, null));
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
 	@Test
 	public void getUserById_userDoesNotExist_throwsNotFoundException() {
-		ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> userService.getUserById(999L));
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getUserById(999L));
 		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
 		assertEquals("User with id 999 was not found.", exception.getReason());
 	}

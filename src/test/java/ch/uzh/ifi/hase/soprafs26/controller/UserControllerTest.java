@@ -1,8 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.controller;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
@@ -45,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
+
+	ControllerTestHelper controllerTestHelper = new ControllerTestHelper();
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -113,7 +112,7 @@ public class UserControllerTest {
 		// when/then -> do the request + validate the result
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPostDTO));
+				.content(controllerTestHelper.asJsonString(userPostDTO));
 
 		// then
 		mockMvc.perform(postRequest)
@@ -186,7 +185,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/login")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userLoginDTO));
+				.content(controllerTestHelper.asJsonString(userLoginDTO));
 
 		mockMvc.perform(postRequest)
 				.andExpect(status().isOk())
@@ -213,7 +212,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/login")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userLoginDTO));
+				.content(controllerTestHelper.asJsonString(userLoginDTO));
 
 		mockMvc.perform(postRequest).andExpect(status().isUnauthorized());
 	}
@@ -281,7 +280,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isNoContent());
 		Mockito.verify(userService).updateUser(1L, "valid-token", "Updated bio", null);
@@ -299,7 +298,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isNoContent());
 		Mockito.verify(userService).updateUser(1L, "valid-token", "Updated bio", "newPassword123");
@@ -316,7 +315,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(null))
 				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
@@ -334,7 +333,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "invalid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString()))
 				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
@@ -352,7 +351,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 2L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
 	}
@@ -372,7 +371,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 999L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isNotFound());
 	}
@@ -392,7 +391,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
@@ -409,7 +408,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
@@ -429,7 +428,7 @@ public class UserControllerTest {
 		MockHttpServletRequestBuilder putRequest = put("/users/{userId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", "Bearer valid-token")
-				.content(asJsonString(userUpdatePutDTO));
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO));
 		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
 		mockMvc.perform(putRequest).andExpect(status().isBadRequest());
 	}
@@ -459,7 +458,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPostDTO));
+				.content(controllerTestHelper.asJsonString(userPostDTO));
 
 		mockMvc.perform(postRequest)
 				.andExpect(status().isCreated())
@@ -483,7 +482,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPostDTO));
+				.content(controllerTestHelper.asJsonString(userPostDTO));
 
 		mockMvc.perform(postRequest)
 				.andExpect(status().isBadRequest());
@@ -503,7 +502,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPostDTO));
+				.content(controllerTestHelper.asJsonString(userPostDTO));
 
 		mockMvc.perform(postRequest)
 				.andExpect(status().isConflict());
@@ -523,7 +522,7 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPostDTO));
+				.content(controllerTestHelper.asJsonString(userPostDTO));
 
 		mockMvc.perform(postRequest)
 				.andExpect(status().isBadRequest());
@@ -546,28 +545,10 @@ public class UserControllerTest {
 
 		MockHttpServletRequestBuilder postRequest = post("/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(userPostDTO));
+				.content(controllerTestHelper.asJsonString(userPostDTO));
 
 		mockMvc.perform(postRequest)
 				.andExpect(status().isBadRequest());
 	}
 
-	/**
-	 * Helper Method to convert userPostDTO into a JSON string such that the input
-	 * can be processed
-	 * Input will look like this:
-	 * {"name":"Test User", "username":"testUsername", "password":"password123",
-	 * "bio":"Short bio"}
-	 * 
-	 * @param object
-	 * @return string
-	 */
-	private String asJsonString(final Object object) {
-		try {
-			return new ObjectMapper().writeValueAsString(object);
-		} catch (JacksonException e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					String.format("The request body could not be created.%s", e.toString()));
-		}
-	}
 }
