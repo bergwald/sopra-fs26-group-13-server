@@ -98,7 +98,33 @@ public class GameControllerTest {
 			.andExpect(jsonPath("$.sessionId", is(gameData.getSessionId())));
 	
 	}
+	@Test
+	public void getSessionRoundURL_400() throws Exception {
+		//given
+		given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+        given(userService.extractBearerToken(anyString())).willReturn("valid-token");
 
+		GameDataGetDTO gameGet = new GameDataGetDTO();
+
+		given(gameService.getSessionRoundData(any())).willThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST));
+		MockHttpServletRequestBuilder getRequest = get("/game_data").contentType(MediaType.APPLICATION_JSON).content(asJsonString(gameGet));
+		mockMvc.perform(getRequest).andExpect(status().isBadRequest());
+	
+	}
+
+	public void getSessionRoundURL_401() throws Exception {
+		//given
+		given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+        given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
+
+		GameDataGetDTO gameGet = new GameDataGetDTO();
+		Game_data gameData = new Game_data();
+
+		given(gameService.getSessionRoundData(any())).willReturn(gameData);
+		MockHttpServletRequestBuilder getRequest = get("/game_data").contentType(MediaType.APPLICATION_JSON).content(asJsonString(gameGet));
+		mockMvc.perform(getRequest).andExpect(status().isUnauthorized());
+	
+	}
 	private String asJsonString(final Object object) {
         try {
             return new ObjectMapper().writeValueAsString(object);
