@@ -17,6 +17,11 @@ import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+/*
+Service class for handling everything related to a game session. 
+It includes functions for creating, getting and joining sessions. 
+*/
+
 @Service
 @Transactional
 public class SessionService {
@@ -49,8 +54,8 @@ public class SessionService {
         return session;
     }
 
-    public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole UserSessionRole) {
-
+    public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole UserSessionRole)
+            throws ResponseStatusException {
         Session currentSession = this.sessionRepository.findById(sessionId);
         if (currentSession == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -61,6 +66,7 @@ public class SessionService {
                     String.format("Session with id %s is already in progress. You can't join this session.",
                             sessionId.toString()));
         }
+
         SessionUser newSessionUser = new SessionUser();
         newSessionUser.setScore(0L);
         newSessionUser.setUser(
