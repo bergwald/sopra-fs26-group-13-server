@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
 import java.time.LocalDateTime;
@@ -34,10 +35,11 @@ public class SessionServiceTest {
     private SessionRepository sessionRepository;
     private SessionUserRepository sessionUserRepository;
     private UserRepository userRepository;
-
+    
     private SessionService sessionService;
 
     private Session mockSession;
+    
     private User mockUser;
     private SessionUser mockSessionUser;
 
@@ -159,6 +161,22 @@ public class SessionServiceTest {
 
         assertEquals(HttpStatus.NOT_FOUND, responseException.getStatusCode());
         assertEquals("No user to session associated found!", responseException.getReason());
+    }
 
+    @Test 
+    void testValidateSessionExpiryDate_valid(){
+        Session returnedSession = sessionService.validateSessionExpiryDate(mockSession);
+        assertEquals(returnedSession, mockSession);
+    }
+    
+    @Test 
+    void testValidateSessionExpiryDate_invalid(){
+        mockSession.setSessionExpiryDateTime(LocalDateTime.now().plusHours(2).plusMinutes(1));
+        doNothing().when(sessionUserRepository).delete(any(SessionUser.class));
+        doNothing().when(sessionRepository).delete(any(Session.class));
+
+        ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
+                () -> sessionService.validateSessionExpiryDate(mockSession));
+        assertEquals(HttpStatus.FORBIDDEN, responseException.getStatusCode());
     }
 }
