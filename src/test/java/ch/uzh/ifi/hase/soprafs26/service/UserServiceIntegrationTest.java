@@ -84,6 +84,22 @@ public class UserServiceIntegrationTest {
 	}
 
 	@Test
+	public void getAuthenticatedUser_validToken_success() {
+		// given
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "password123");
+
+		// when
+		User authenticatedUser = userService.getAuthenticatedUser(createdUser.getToken());
+
+		// then
+		assertEquals(createdUser.getId(), authenticatedUser.getId());
+		assertEquals(createdUser.getUsername(), authenticatedUser.getUsername());
+	}
+
+	@Test
 	public void loginUser_validCredentials_success() {
 		// given
 		User testUser = new User();

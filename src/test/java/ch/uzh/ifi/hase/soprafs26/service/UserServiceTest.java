@@ -225,4 +225,27 @@ public class UserServiceTest {
 		assertEquals(testUser.getBio(), foundUser.getBio());
 		assertEquals(testUser.getCreationDate(), foundUser.getCreationDate());
 	}
+
+	@Test
+	public void getAuthenticatedUser_validToken_success() {
+		// given
+		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
+
+		// when
+		User authenticatedUser = userService.getAuthenticatedUser("valid-token");
+
+		// then
+		assertEquals(testUser.getId(), authenticatedUser.getId());
+		assertEquals(testUser.getUsername(), authenticatedUser.getUsername());
+	}
+
+	@Test
+	public void getAuthenticatedUser_invalidToken_throwsUnauthorized() {
+		// when
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getAuthenticatedUser("invalid-token"));
+
+		// then
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
 }

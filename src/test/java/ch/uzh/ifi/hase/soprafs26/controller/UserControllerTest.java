@@ -121,16 +121,32 @@ public class UserControllerTest {
 	public void givenUserId_whenGetUser_thenReturnJsonObject() throws Exception {
 		// given
 		User user = sampleUser();
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
+		when(userService.getAuthenticatedUser("valid-token")).thenReturn(sampleUser());
 		given(userService.getUserById(1L)).willReturn(user);
 
 		// when/then
-		mockMvc.perform(get("/users/{userId}", 1L).contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
 				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
+	}
+
+	/** Tests GET /users/{userId} and verifies a missing Authorization header returns 401. */
+	@Test
+	public void givenMissingAuthorization_whenGetUser_thenReturnUnauthorized() throws Exception {
+		// given
+		when(userService.extractBearerToken(null))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
+
+		// when/then
+		mockMvc.perform(get("/users/{userId}", 1L).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isUnauthorized());
 	}
 
 	/**
