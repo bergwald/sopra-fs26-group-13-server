@@ -48,6 +48,19 @@ public class UserService {
 						String.format("User with id %d was not found.", userId)));
 	}
 
+	public User getAuthenticatedUser(String requesterToken) {
+		if (requesterToken == null || requesterToken.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		User requester = userRepository.findByToken(requesterToken);
+		if (requester == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
+		}
+
+		return requester;
+	}
+
 	public User createUser(User newUser, String rawPassword) {
 		validateRegistrationInput(newUser, rawPassword);
 		checkIfUsernameExists(newUser.getUsername());
@@ -160,14 +173,7 @@ public class UserService {
 
 	public User getAuthorizedTargetUser(Long targetUserId, String requesterToken) {
 		// First, validate the token (to avoid leaking whether a user ID exists to unauthenticated users)
-		if (requesterToken == null || requesterToken.isBlank()) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
-		}
-
-		User requester = userRepository.findByToken(requesterToken);
-		if (requester == null) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
-		}
+		User requester = getAuthenticatedUser(requesterToken);
 
 		// Secondly, check if the user exists and return 404 otherwise (according to the spec of M1)
 		User targetUser = userRepository.findById(targetUserId)
