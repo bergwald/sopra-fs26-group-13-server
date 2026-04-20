@@ -85,7 +85,6 @@ public class GameControllerTest {
 	private User sampleUser() {
         User user = new User();
         user.setId(1L);
-        user.setName("Test User");
         user.setUsername("testUsername");
         user.setBio("Some bio");
         user.setPasswordHash("123213123");

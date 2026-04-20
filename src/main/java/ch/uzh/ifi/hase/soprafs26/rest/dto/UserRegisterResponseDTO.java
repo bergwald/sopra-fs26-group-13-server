@@ -5,7 +5,6 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 public class UserRegisterResponseDTO {
 
 	private Long id;
-	private String name;
 	private String username;
 	private String bio;
 	private UserStatus status;
@@ -17,14 +16,6 @@ public class UserRegisterResponseDTO {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getUsername() {

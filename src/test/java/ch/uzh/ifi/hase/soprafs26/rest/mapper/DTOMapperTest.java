@@ -1,25 +1,25 @@
 package ch.uzh.ifi.hase.soprafs26.rest.mapper;
 
-import org.junit.jupiter.api.Test;
-
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
-import ch.uzh.ifi.hase.soprafs26.entity.Session;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
+import ch.uzh.ifi.hase.soprafs26.entity.Session;
+import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserProfileGetDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.dto.UserRegisterResponseDTO;
 
 /**
  * DTOMapperTest
@@ -27,11 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * works.
  */
 public class DTOMapperTest {
+
 	@Test
 	public void testCreateUser_fromUserPostDTO_toUser_success() {
 		// create UserPostDTO
 		UserPostDTO userPostDTO = new UserPostDTO();
-		userPostDTO.setName("name");
 		userPostDTO.setUsername("username");
 		userPostDTO.setPassword("password123");
 		userPostDTO.setBio("short bio");
@@ -40,7 +40,6 @@ public class DTOMapperTest {
 		User user = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
 
 		// check content
-		assertEquals(userPostDTO.getName(), user.getName());
 		assertEquals(userPostDTO.getUsername(), user.getUsername());
 		assertEquals(userPostDTO.getBio(), user.getBio());
 	}
@@ -49,7 +48,7 @@ public class DTOMapperTest {
 	public void testGetUser_fromUser_toUserGetDTO_success() {
 		// create User
 		User user = new User();
-		user.setName("Firstname Lastname");
+		user.setId(1L);
 		user.setUsername("firstname@lastname");
 		user.setBio("Hello from bio");
 		user.setStatus(UserStatus.OFFLINE);
@@ -60,7 +59,6 @@ public class DTOMapperTest {
 
 		// check content
 		assertEquals(user.getId(), userGetDTO.getId());
-		assertEquals(user.getName(), userGetDTO.getName());
 		assertEquals(user.getUsername(), userGetDTO.getUsername());
 		assertEquals(user.getBio(), userGetDTO.getBio());
 		assertEquals(user.getStatus(), userGetDTO.getStatus());
@@ -70,7 +68,6 @@ public class DTOMapperTest {
 	public void testRegisterResponse_fromUser_toUserRegisterResponseDTO_success() {
 		User user = new User();
 		user.setId(1L);
-		user.setName("Firstname Lastname");
 		user.setUsername("firstname@lastname");
 		user.setBio("Hello from bio");
 		user.setStatus(UserStatus.ONLINE);
@@ -79,7 +76,6 @@ public class DTOMapperTest {
 		UserRegisterResponseDTO registerResponseDTO = DTOMapper.INSTANCE.convertEntityToUserRegisterResponseDTO(user);
 
 		assertEquals(user.getId(), registerResponseDTO.getId());
-		assertEquals(user.getName(), registerResponseDTO.getName());
 		assertEquals(user.getUsername(), registerResponseDTO.getUsername());
 		assertEquals(user.getBio(), registerResponseDTO.getBio());
 		assertEquals(user.getStatus(), registerResponseDTO.getStatus());
@@ -90,7 +86,6 @@ public class DTOMapperTest {
 	public void testGetUserProfile_fromUser_toUserProfileGetDTO_success() {
 		User user = new User();
 		user.setId(1L);
-		user.setName("Firstname Lastname");
 		user.setUsername("firstname@lastname");
 		user.setBio("Hello from bio");
 		user.setStatus(UserStatus.ONLINE);
@@ -99,7 +94,6 @@ public class DTOMapperTest {
 		UserProfileGetDTO userProfileGetDTO = DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
 
 		assertEquals(user.getId(), userProfileGetDTO.getId());
-		assertEquals(user.getName(), userProfileGetDTO.getName());
 		assertEquals(user.getUsername(), userProfileGetDTO.getUsername());
 		assertEquals(user.getBio(), userProfileGetDTO.getBio());
 		assertEquals(user.getStatus(), userProfileGetDTO.getStatus());
@@ -109,24 +103,21 @@ public class DTOMapperTest {
 	@Test
 	public void test_getSessionRoundURL_from_GameData_to_GameDataGetDTO_success() {
 		// create Game_data
-		Game_data GameData = new Game_data();
-		GameData.setDataId(Long.valueOf(123456));
-		GameData.setSessionId("Session11111");
-		GameData.setImageUrl("example.com/panorama-image");
-		GameData.setLongitude(1.0f);
-		GameData.setLatitude(4.0f);
-		GameData.setRoundNumber(3);
+		Game_data gameData = new Game_data();
+		gameData.setDataId(Long.valueOf(123456));
+		gameData.setSessionId("Session11111");
+		gameData.setImageUrl("example.com/panorama-image");
+		gameData.setLongitude(1.0f);
+		gameData.setLatitude(4.0f);
+		gameData.setRoundNumber(3);
 
 		// MAP -> Create GameDataGetDTO
-		GameDataGetDTO gameDataGetDTO = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(GameData);
+		GameDataGetDTO gameDataGetDTO = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(gameData);
 
 		// check content
-		GameData.getDataId();
-		assertEquals(GameData.getSessionId(), gameDataGetDTO.getSessionId());
-		assertEquals(GameData.getImageUrl(), gameDataGetDTO.getImageUrl());
-		assertEquals(GameData.getRoundNumber(), gameDataGetDTO.getRoundNumber());
-		GameData.getLongitude();
-		GameData.getLatitude();
+		assertEquals(gameData.getSessionId(), gameDataGetDTO.getSessionId());
+		assertEquals(gameData.getImageUrl(), gameDataGetDTO.getImageUrl());
+		assertEquals(gameData.getRoundNumber(), gameDataGetDTO.getRoundNumber());
 	}
 
 	@Test
@@ -146,7 +137,7 @@ public class DTOMapperTest {
 
 	@Test
 	public void testGetSession_fromSession_toSessionGetDTO_success() {
-		LocalDateTime currentDateTime = LocalDateTime.of(2026, 1, 1, 8, 30, 00);
+		LocalDateTime currentDateTime = LocalDateTime.of(2026, 1, 1, 8, 30, 0);
 
 		Session session = new Session();
 		session.setRoundNumber(1);
@@ -168,11 +159,6 @@ public class DTOMapperTest {
 		guess.setLatitude(47.3);
 		guess.setLongitude(8.5);
 
-		assertEquals(5L, guess.getUserId());
-		assertEquals("session-uuid-string", guess.getSessionId());
-		assertEquals(47.3, guess.getLatitude(), 0d);
-		assertEquals(8.5, guess.getLongitude(), 0d);
-
 		Game_data lookup = DTOMapper.INSTANCE.convertUserGuessPutDTOToEntity(guess);
 
 		assertEquals(guess.getSessionId(), lookup.getSessionId());
@@ -192,16 +178,5 @@ public class DTOMapperTest {
 		assertEquals(12.5d, answer.getDistance(), 0d);
 		assertEquals(88, answer.getScoreRound());
 		assertEquals(200L, answer.getScoreOverall());
-
-		answer.setLatitude(1.0d);
-		answer.setLongitude(2.0d);
-		answer.setDistance(3.0d);
-		answer.setScoreRound(10);
-		answer.setScoreOverall(99L);
-		assertEquals(1.0d, answer.getLatitude());
-		assertEquals(2.0d, answer.getLongitude());
-		assertEquals(3.0d, answer.getDistance());
-		assertEquals(10, answer.getScoreRound());
-		assertEquals(99L, answer.getScoreOverall());
 	}
 }

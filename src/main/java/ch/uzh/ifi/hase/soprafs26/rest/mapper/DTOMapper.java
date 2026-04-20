@@ -38,20 +38,17 @@ public interface DTOMapper {
 	@Mapping(target = "token", ignore = true)
 	@Mapping(target = "status", ignore = true)
 	@Mapping(target = "creationDate", ignore = true)
-	@Mapping(source = "name", target = "name")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
 	User convertUserPostDTOtoEntity(UserPostDTO userPostDTO);
 
 	@Mapping(source = "id", target = "id")
-	@Mapping(source = "name", target = "name")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
 	@Mapping(source = "status", target = "status")
 	UserGetDTO convertEntityToUserGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
-	@Mapping(source = "name", target = "name")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
 	@Mapping(source = "status", target = "status")
@@ -59,7 +56,6 @@ public interface DTOMapper {
 	UserProfileGetDTO convertEntityToUserProfileGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
-	@Mapping(source = "name", target = "name")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
 	@Mapping(source = "status", target = "status")
