@@ -28,7 +28,6 @@ public class SessionUserRepositoryIntegrationTest {
     @Test
     public void findByUserId_success() {
         User user = new User();
-        user.setName("Firstname Lastname");
         user.setUsername("firstname@lastname");
         user.setBio("Short bio");
         user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
