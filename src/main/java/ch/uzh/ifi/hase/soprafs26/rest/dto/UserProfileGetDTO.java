@@ -7,7 +7,6 @@ import java.time.Instant;
 public class UserProfileGetDTO {
 
 	private Long id;
-	private String name;
 	private String username;
 	private String bio;
 	private UserStatus status;
@@ -19,14 +18,6 @@ public class UserProfileGetDTO {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getUsername() {

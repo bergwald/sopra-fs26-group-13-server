@@ -48,7 +48,10 @@ public class UserController {
 
 	@GetMapping("/users/{userId}")
 	@ResponseStatus(HttpStatus.OK)
-	public UserProfileGetDTO getUserById(@PathVariable("userId") Long userId) {
+	public UserProfileGetDTO getUserById(@PathVariable("userId") Long userId,
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthenticatedUser(token);
 		User user = userService.getUserById(userId);
 		return DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
 	}
