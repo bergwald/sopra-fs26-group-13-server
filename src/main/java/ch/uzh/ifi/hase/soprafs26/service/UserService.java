@@ -140,15 +140,6 @@ public class UserService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username must not be empty.");
 		}
 
-		if (userToBeCreated.getName() == null || userToBeCreated.getName().isBlank()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name must not be empty.");
-		}
-
-		userToBeCreated.setName(userToBeCreated.getName().trim());
-		if (userToBeCreated.getName().isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name must not be empty.");
-		}
-
 		userToBeCreated.setUsername(userToBeCreated.getUsername().trim());
 		if (userToBeCreated.getUsername().isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The username must not be empty.");
