@@ -115,15 +115,23 @@ public class SessionService {
         return session;
     }
 
-    public void deleteSession(Session session) {
+    public boolean deleteSession(Session session) {
         /* Deletes a session with the key constraint corresponding sessionUser table. */
-        List<SessionUser> sessionUsers = getAllSessionUser(session.getId());
-        for (SessionUser su : sessionUsers) {
-            this.sessionUserRepository.delete(su);
+
+        try {
+            List<SessionUser> sessionUsers = getAllSessionUser(session.getId());
+            for (SessionUser su : sessionUsers) {
+                this.sessionUserRepository.delete(su);
+            }
+            this.sessionUserRepository.flush();
+
+            this.sessionRepository.delete(session);
+            this.sessionRepository.flush();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Failed to delete session: " + e.getMessage());
+            return false;
         }
-        this.sessionUserRepository.flush();
-        this.sessionRepository.delete(session);
-        this.sessionRepository.flush();
     }
 
 }
