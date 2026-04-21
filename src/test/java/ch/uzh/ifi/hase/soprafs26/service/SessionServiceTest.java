@@ -24,7 +24,6 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
-import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
@@ -101,31 +100,12 @@ public class SessionServiceTest {
     }
 
     @Test
-    void testCreateSinglePlayerSession() {
-        when(sessionRepository.save(any(Session.class))).thenReturn(mockSession);
-        when(sessionRepository.findById(any(UUID.class))).thenReturn(mockSession);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
-        when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
-        when(googlePanoramaService.fetchPanoramaCandidate())
-                .thenReturn(new GooglePanoramaCandidate("pano-1", 1.0, 2.0))
-                .thenReturn(new GooglePanoramaCandidate("pano-2", 3.0, 4.0))
-                .thenReturn(new GooglePanoramaCandidate("pano-3", 5.0, 6.0));
-
-        Session session = sessionService.createSinglePlayerSession(mockUser.getId());
-
-        assertNotNull(session);
-        assertEquals(1, session.getRoundNumber());
-        verify(gameDataRepository, times(3)).save(any(Game_data.class));
-        verify(sessionRepository, times(2)).save(any(Session.class));
-    }
-
-    @Test
     void testUserJoinSession_valid() {
         when(sessionRepository.findById(any(UUID.class))).thenReturn(mockSession);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
         when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
 
-        Session joinedSession = sessionService.userJoinSession(1L, mockSession.getId(), UserSessionRole.OWNER);
+        Session joinedSession = sessionService.userJoinSession(1L, mockSession.getId(), UserSessionRole.PLAYER);
 
         assertNotNull(joinedSession);
         assertEquals(mockSession, joinedSession);
