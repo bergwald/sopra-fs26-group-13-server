@@ -63,17 +63,8 @@ public class SessionService {
         return session;
     }
 
-    public Session createSinglePlayerSession(Long userId) {
-        Session session = createNewSession();
-        userJoinSession(userId, session.getId(), UserSessionRole.OWNER);
-        initializeSinglePlayerRounds(session);
-        session.setRoundNumber(1);
-        session = sessionRepository.save(session);
-        sessionRepository.flush();
-        return session;
-    }
 
-    public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole UserSessionRole)
+    public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole userSessionRole)
             throws ResponseStatusException {
         Session currentSession = this.sessionRepository.findById(sessionId);
         if (currentSession == null) {
@@ -93,7 +84,11 @@ public class SessionService {
                         String.format("User with id %d was not found.", userId))));
 
         newSessionUser.setSession(this.sessionRepository.findById(sessionId));
-        newSessionUser.setUserRole(UserSessionRole);
+        newSessionUser.setUserRole(userSessionRole);
+        if (userSessionRole.equals(UserSessionRole.OWNER)){
+            // Initializes the game if the user is the owner
+            initializeGameDate(currentSession);
+        }
         this.sessionUserRepository.save(newSessionUser);
         this.sessionUserRepository.flush();
         return currentSession;
@@ -110,12 +105,12 @@ public class SessionService {
 
     public List<SessionUser> getAllSessionUserForAuthorizedUser(UUID sessionId, Long userId)
             throws ResponseStatusException {
-        this.sessionUserRepository.findByUserIdAndSessionId(userId, sessionId)
+        this.sessionUserRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session user not found"));
         return getAllSessionUser(sessionId);
-    }
+    }   
 
-    private void initializeSinglePlayerRounds(Session session) {
+    private void initializeGameDate(Session session) {
         for (int roundNumber = 1; roundNumber <= SINGLEPLAYER_TOTAL_ROUNDS; roundNumber++) {
             GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
 
@@ -129,5 +124,5 @@ public class SessionService {
         }
         gameDataRepository.flush();
     }
-
+    
 }

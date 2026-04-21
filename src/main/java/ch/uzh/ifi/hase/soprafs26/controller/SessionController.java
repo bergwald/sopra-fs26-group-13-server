@@ -22,11 +22,11 @@ import java.util.UUID;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * User Controller
+ * Session Controller
  * This class is responsible for handling all REST request that are related to
- * the user.
+ * the session.
  * The controller will receive the request and delegate the execution to the
- * UserService and finally return the result.
+ * SessionService and finally return the result.
  */
 
 @RestController
@@ -94,7 +94,8 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 		validateBodyUserId(userId, sessionPost.getUserId());
-		Session createdSession = sessionService.createSinglePlayerSession(sessionPost.getUserId());
+		Session createdSession = sessionService.createNewSession();
+		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId(), UserSessionRole.OWNER);
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
 
