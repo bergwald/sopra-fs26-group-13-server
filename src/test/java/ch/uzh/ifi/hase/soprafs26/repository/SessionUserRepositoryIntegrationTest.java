@@ -50,8 +50,8 @@ public class SessionUserRepositoryIntegrationTest {
         entityManager.persist(sessionUser);
         entityManager.flush();
 
-        SessionUser foundSessionUser = sessionUserRepository.findById(user.getId())
-                .orElseThrow(() -> new AssertionError("SessionUser not found for id " + user.getId()));
+        SessionUser foundSessionUser = sessionUserRepository.findByUserIdAndSessionId(user.getId(), session.getId())
+                .orElseThrow(() -> new AssertionError("SessionUser not found for user id " + user.getId()));
         ;
 
         assertNotNull(foundSessionUser);
