@@ -91,9 +91,6 @@ public class GooglePanoramaService {
         this.streetViewSource = streetViewSource;
     }
 
-    // Temporary selection flow backing the `/google/panorama` demo route.
-    // Once rounds are generated through the authenticated game flow, reuse or move
-    // this logic there instead of keeping this public fetch path.
     public GooglePanoramaCandidate fetchPanoramaCandidate() {
         if (searchRegions.isEmpty()) {
             throw new ResponseStatusException(NOT_FOUND, "No panorama search regions are configured.");

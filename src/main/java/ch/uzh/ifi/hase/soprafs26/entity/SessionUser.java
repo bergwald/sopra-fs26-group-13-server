@@ -7,15 +7,16 @@ import java.io.Serializable;
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 
 @Entity
-@Table(name = "sessionuser")
+@Table(name = "sessionuser", uniqueConstraints = {
+    @UniqueConstraint(columnNames = { "user_id", "session_id" })
+})
 public class SessionUser implements Serializable {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    @OneToOne(fetch = FetchType.EAGER, optional = false, cascade = CascadeType.PERSIST)
-    @MapsId
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 

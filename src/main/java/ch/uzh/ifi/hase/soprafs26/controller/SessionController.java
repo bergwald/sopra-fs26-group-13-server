@@ -19,6 +19,7 @@ import ch.uzh.ifi.hase.soprafs26.service.SessionService;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * User Controller
@@ -67,7 +68,7 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 
-		List<SessionUser> sessionUser = sessionService.getAllSessionUser(UUID.fromString(sessionId));
+		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(UUID.fromString(sessionId), userId);
 
 		// Convert to DTOs
 		List<SessionUserDetailsGetDTO> sessionUserDTOs = new ArrayList<>();
@@ -92,8 +93,8 @@ public class SessionController {
 		// Creates a new session and returns the new session type
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
-		Session createdSession = sessionService.createNewSession();
-		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId(), UserSessionRole.OWNER);
+		validateBodyUserId(userId, sessionPost.getUserId());
+		Session createdSession = sessionService.createSinglePlayerSession(sessionPost.getUserId());
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
 
@@ -104,9 +105,16 @@ public class SessionController {
 			@RequestHeader(value = "userId", required = false) Long userId) {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
+		validateBodyUserId(userId, sessionPut.getUserId());
 		Session createdSession = sessionService.userJoinSession(sessionPut.getUserId(),
 				UUID.fromString(sessionPut.getSessionId()), UserSessionRole.PLAYER);
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
+	}
+
+	private void validateBodyUserId(Long authenticatedUserId, Long bodyUserId) {
+		if (authenticatedUserId == null || bodyUserId == null || !authenticatedUserId.equals(bodyUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User id mismatch");
+		}
 	}
 
 }
