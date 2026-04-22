@@ -68,7 +68,8 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 
-		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(UUID.fromString(sessionId), userId);
+		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(UUID.fromString(sessionId),
+				userId);
 
 		// Convert to DTOs
 		List<SessionUserDetailsGetDTO> sessionUserDTOs = new ArrayList<>();
@@ -80,9 +81,30 @@ public class SessionController {
 			sessionUserDetail.setSessionExpiryDateTime(su.getSession().getSessionExpiryDateTime());
 			sessionUserDetail.setScore(su.getScore());
 			sessionUserDetail.setUserRole(su.getUserRole());
+			sessionUserDetail.setRoundStartedDateTime(su.getSession().getRoundStartedDateTime());
 			sessionUserDTOs.add(sessionUserDetail);
 		}
 		return sessionUserDTOs;
+	}
+
+	@PutMapping("/session/{sessionId}/increaseRoundNumber")
+	@ResponseStatus(HttpStatus.OK)
+	public Integer increaseSessionRoundNumber(
+			@PathVariable String sessionId,
+			@RequestParam int currentRoundNumber,
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
+
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthorizedTargetUser(userId, token);
+		boolean userIsOwner = sessionService.checkIfUserIsSessionOwner(userId, sessionId);
+		if (userIsOwner) {
+			Session session = sessionService.getSessionWithId(sessionId);
+			Integer increasedRoundNumber = sessionService.increaseSessionRoundNumber(session, currentRoundNumber, 3);
+			return increasedRoundNumber;
+		} else {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the owner of this session");
+		}
 	}
 
 	@PostMapping("/session")

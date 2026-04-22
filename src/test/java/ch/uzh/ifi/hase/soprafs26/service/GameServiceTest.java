@@ -140,7 +140,7 @@ public class GameServiceTest {
 	}
 
 	@Test
-	public void advanceSinglePlayerRound_movesToNextRound() {
+	public void validateSessionGameGuess_valid() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
 		sessionRepository = mock(SessionRepository.class);
@@ -152,25 +152,6 @@ public class GameServiceTest {
 		session.setRoundNumber(2);
 		when(sessionRepository.findById(sessionId)).thenReturn(session);
 
-		assertEquals(3, gameService.advanceSinglePlayerRound(sessionId.toString(), 2));
-		assertEquals(3, session.getRoundNumber());
-		verify(sessionRepository).save(session);
-	}
-
-	@Test
-	public void advanceSinglePlayerRound_marksSessionFinishedAfterFinalRound() {
-		gameDataRepository = mock(GameDataRepository.class);
-		sessionUserRepository = mock(SessionUserRepository.class);
-		sessionRepository = mock(SessionRepository.class);
-		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
-
-		UUID sessionId = UUID.fromString("66666666-6666-6666-6666-666666666666");
-		Session session = new Session();
-		session.setId(sessionId);
-		session.setRoundNumber(3);
-		when(sessionRepository.findById(sessionId)).thenReturn(session);
-
-		assertEquals(4, gameService.advanceSinglePlayerRound(sessionId.toString(), 3));
-		assertEquals(4, session.getRoundNumber());
+		assertEquals(3, gameService.validateSessionGameGuess(sessionId.toString(), 2));
 	}
 }

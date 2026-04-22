@@ -25,6 +25,9 @@ public class Session implements Serializable {
     @Column(nullable = false)
     private Integer roundNumber;
 
+    @Column(nullable = false)
+    private LocalDateTime roundStartedDateTime;
+
     public UUID getId() {
         return id;
     }
@@ -51,5 +54,13 @@ public class Session implements Serializable {
 
     public void setRoundNumber(Integer roundNumber) {
         this.roundNumber = roundNumber;
+    }
+
+    public LocalDateTime getRoundStartedDateTime() {
+        return roundStartedDateTime;
+    }
+
+    public void setRoundStartedDateTime(LocalDateTime roundStartedDateTime) {
+        this.roundStartedDateTime = roundStartedDateTime;
     }
 }

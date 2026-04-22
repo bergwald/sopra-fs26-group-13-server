@@ -29,7 +29,7 @@ It includes functions for creating, getting and joining sessions.
 @Transactional
 public class SessionService {
     private static final int EXPIRE_HOURS = 2;
-    private static final int SINGLEPLAYER_TOTAL_ROUNDS = 3;
+    private static final int GAME_TOTAL_ROUNDS = 3;
 
     private final GameDataRepository gameDataRepository;
     private final SessionRepository sessionRepository;
@@ -59,12 +59,12 @@ public class SessionService {
         Session session = new Session();
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(EXPIRE_HOURS);
         session.setSessionExpiryDateTime(expiryDate);
+        session.setRoundStartedDateTime(LocalDateTime.now());
         session.setRoundNumber(0);
         session = sessionRepository.save(session);
         sessionRepository.flush();
         return session;
     }
-
 
     public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole userSessionRole)
             throws ResponseStatusException {
@@ -81,7 +81,7 @@ public class SessionService {
         SessionUser sessionUser = sessionUserRepository.findById(userId)
                 .orElse(createNewSessionUser(userId, sessionId, userSessionRole));
 
-        if (userSessionRole.equals(UserSessionRole.OWNER)){
+        if (userSessionRole.equals(UserSessionRole.OWNER)) {
             // Initializes the game if the user is the owner
             initializeGameDate(currentSession);
         }
@@ -156,10 +156,10 @@ public class SessionService {
         this.sessionUserRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session user not found"));
         return getAllSessionUser(sessionId);
-    }   
+    }
 
     public void initializeGameDate(Session session) {
-        for (int roundNumber = 1; roundNumber <= SINGLEPLAYER_TOTAL_ROUNDS; roundNumber++) {
+        for (int roundNumber = 1; roundNumber <= GAME_TOTAL_ROUNDS; roundNumber++) {
             GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
 
             Game_data gameData = new Game_data();
@@ -173,6 +173,55 @@ public class SessionService {
         gameDataRepository.flush();
     }
 
+    public boolean checkIfUserIsSessionOwner(Long userId, String sessionId) {
+        UUID sessionUuid = parseSessionId(sessionId);
+        Optional<SessionUser> sessionUser = sessionUserRepository.findByUserIdAndSessionId(userId, sessionUuid);
+        if (sessionUser.isPresent()) {
+            if (sessionUser.get().getUserRole().equals(UserSessionRole.OWNER)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Session getSessionWithId(String sessionId) {
+        UUID sessionUuid = parseSessionId(sessionId);
+        Session session = sessionRepository.findById(sessionUuid);
+        return session;
+    }
+
+    public int increaseSessionRoundNumber(Session session, int submittedRoundNumber, int totalRoundNumbers) {
+        int nextRoundNumber = submittedRoundNumber < totalRoundNumbers
+                ? submittedRoundNumber + 1
+                : totalRoundNumbers + 1;
+        session.setRoundNumber(nextRoundNumber);
+        session.setRoundStartedDateTime(LocalDateTime.now());
+        sessionRepository.save(session);
+        return nextRoundNumber;
+    }
+
+    public void validateSessionGameGuess(String sessionId, int submittedRoundNumber) throws ResponseStatusException {
+        UUID sessionUuid = parseSessionId(sessionId);
+        Session session = sessionRepository.findById(sessionUuid);
+        if (session == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
+        }
+        if (session.getRoundNumber() == null || session.getRoundNumber() != submittedRoundNumber) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session round is out of sync");
+        }
+        if (submittedRoundNumber < 1 || submittedRoundNumber > GAME_TOTAL_ROUNDS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid round number");
+        }
+    }
+
+    private static UUID parseSessionId(String sessionId) {
+        try {
+            return UUID.fromString(sessionId);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
+        }
+    }
+
     public void cleanUpSessionBeforeCreating(Long userId) {
         Optional<SessionUser> sessionUser = sessionUserRepository.findById(userId);
         if (sessionUser.isPresent()) {
@@ -183,5 +232,5 @@ public class SessionService {
             }
         }
     }
-    
+
 }

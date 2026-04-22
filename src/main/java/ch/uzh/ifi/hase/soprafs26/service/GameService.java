@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 @Transactional
 public class GameService {
-    private static final int SINGLEPLAYER_TOTAL_ROUNDS = 3;
+    private static final int GAME_TOTAL_ROUNDS = 3;
 
     private final GameDataRepository gameDataRepository;
     private final SessionUserRepository sessionUserRepository;
@@ -66,7 +66,7 @@ public class GameService {
         return sessionUser.getScore();
     }
 
-    public int advanceSinglePlayerRound(String sessionId, int submittedRoundNumber) {
+    public int validateSessionGameGuess(String sessionId, int submittedRoundNumber) {
         UUID sessionUuid = parseSessionId(sessionId);
         Session session = sessionRepository.findById(sessionUuid);
         if (session == null) {
@@ -75,13 +75,17 @@ public class GameService {
         if (session.getRoundNumber() == null || session.getRoundNumber() != submittedRoundNumber) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session round is out of sync");
         }
-        if (submittedRoundNumber < 1 || submittedRoundNumber > SINGLEPLAYER_TOTAL_ROUNDS) {
+        if (submittedRoundNumber < 1 || submittedRoundNumber > GAME_TOTAL_ROUNDS) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid round number");
         }
 
-        int nextRoundNumber = submittedRoundNumber < SINGLEPLAYER_TOTAL_ROUNDS
+        return submittedRoundNumber + 1;
+    }
+
+    public int increaseSessionRoundNumber(Session session, int submittedRoundNumber, int totalRoundNumbers) {
+        int nextRoundNumber = submittedRoundNumber < totalRoundNumbers
                 ? submittedRoundNumber + 1
-                : SINGLEPLAYER_TOTAL_ROUNDS + 1;
+                : totalRoundNumbers + 1;
         session.setRoundNumber(nextRoundNumber);
         sessionRepository.save(session);
         return nextRoundNumber;

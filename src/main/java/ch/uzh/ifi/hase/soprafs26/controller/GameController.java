@@ -10,8 +10,10 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
 import ch.uzh.ifi.hase.soprafs26.service.GuessEvaluationService;
+import ch.uzh.ifi.hase.soprafs26.service.SessionService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
+import ch.uzh.ifi.hase.soprafs26.entity.Session;
 
 /**
  * User Controller
@@ -25,29 +27,35 @@ public class GameController {
 
 	private final UserService userService;
 	private final GameService gameService;
+	private final SessionService sessionService;
 	private final GuessEvaluationService guessEvaluationService;
 
 	GameController(GameService gameService, UserService userService,
-			GuessEvaluationService guessEvaluationService) {
+			GuessEvaluationService guessEvaluationService,
+			SessionService sessionService) {
 		this.gameService = gameService;
 		this.userService = userService;
 		this.guessEvaluationService = guessEvaluationService;
+		this.sessionService = sessionService;
 	}
 
 	@GetMapping("/game_data")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public GameDataGetDTO getSessionRoundURL(@RequestParam String sessionId,
-		@RequestParam int roundNumber,
-		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-		@RequestHeader(value = "userId", required = false) Long userId) {
-		
-		//authorize user logged in
+			@RequestParam int roundNumber,
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
+
+		// authorize user logged in
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 
 		Game_data output = gameService.getSessionRoundDataForUser(userId, sessionId, roundNumber);
-		return DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(output);
+		Session session = sessionService.getSessionWithId(sessionId);
+		GameDataGetDTO gameData = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(output);
+		gameData.setRoundStartedDateTime(session.getRoundStartedDateTime());
+		return gameData;
 	}
 
 	@PutMapping("/submit_guess")
@@ -72,13 +80,21 @@ public class GameController {
 				userGuessObj.getSessionId(),
 				userGuessObj.getRoundNumber());
 
-		double distance = guessEvaluationService.computeDistanceKm(userGuessObj.getLatitude(),
-				userGuessObj.getLongitude(), gameData.getLatitude(), gameData.getLongitude());
-		int scoreRound = guessEvaluationService.computeScore(distance);
+		double distance;
+		int scoreRound;
 
-		
+		if (userGuessObj.getLatitude() == -1.0 && userGuessObj.getLatitude() == -1.0) {
+			distance = -1.0;
+			scoreRound = 0;
+
+		} else {
+			distance = guessEvaluationService.computeDistanceKm(userGuessObj.getLatitude(),
+					userGuessObj.getLongitude(), gameData.getLatitude(), gameData.getLongitude());
+			scoreRound = guessEvaluationService.computeScore(distance);
+		}
+
 		long scoreOverall = gameService.saveScore(userGuessObj.getUserId(), scoreRound, userGuessObj.getSessionId());
-		gameService.advanceSinglePlayerRound(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
+		gameService.validateSessionGameGuess(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
 
 		return DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, distance, scoreRound, scoreOverall);
 	}

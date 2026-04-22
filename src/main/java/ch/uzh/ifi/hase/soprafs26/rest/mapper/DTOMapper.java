@@ -65,6 +65,7 @@ public interface DTOMapper {
 	@Mapping(source = "sessionId", target = "sessionId")
 	@Mapping(source = "imageUrl", target = "imageUrl")
 	@Mapping(source = "roundNumber", target = "roundNumber")
+	@Mapping(target = "roundStartedDateTime", expression = "java(null)")
 	GameDataGetDTO convertEntityToGameDataGetDTO(Game_data game_data);
 
 	@Mapping(source = "sessionId", target = "sessionId")
