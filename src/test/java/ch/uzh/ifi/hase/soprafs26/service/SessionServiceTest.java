@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
@@ -32,10 +33,12 @@ import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 
 public class SessionServiceTest {
 
+    private GameDataRepository gameDataRepository;
     private SessionRepository sessionRepository;
     private SessionUserRepository sessionUserRepository;
     private UserRepository userRepository;
-    
+        private GooglePanoramaService googlePanoramaService;
+
     private SessionService sessionService;
 
     private Session mockSession;
@@ -47,12 +50,19 @@ public class SessionServiceTest {
     void setUp() {
 
         // Somehow the marking as mock and injecting mock didnt work properly
+        gameDataRepository = mock(GameDataRepository.class);
         sessionRepository = mock(SessionRepository.class);
         sessionUserRepository = mock(SessionUserRepository.class);
         userRepository = mock(UserRepository.class);
+        googlePanoramaService = mock(GooglePanoramaService.class);
 
         // Manually inject mocks into the session service
-        sessionService = new SessionService(sessionRepository, sessionUserRepository, userRepository);
+        sessionService = new SessionService(
+                gameDataRepository,
+                sessionRepository,
+                sessionUserRepository,
+                userRepository,
+                googlePanoramaService);
 
         // Setup mock data
         mockSession = new Session();
@@ -97,7 +107,7 @@ public class SessionServiceTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(mockUser));
         when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
 
-        Session joinedSession = sessionService.userJoinSession(1L, mockSession.getId(), UserSessionRole.OWNER);
+        Session joinedSession = sessionService.userJoinSession(1L, mockSession.getId(), UserSessionRole.PLAYER);
 
         assertNotNull(joinedSession);
         assertEquals(mockSession, joinedSession);
@@ -119,10 +129,10 @@ public class SessionServiceTest {
     @Test
     void testUserJoinSession_invalidUserId() {
         when(sessionRepository.findById(any(UUID.class))).thenReturn(mockSession);
-        when(sessionUserRepository.save(any(SessionUser.class))).thenReturn(mockSessionUser);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
-                () -> sessionService.userJoinSession(1L, UUID.randomUUID(), UserSessionRole.OWNER));
+                () -> sessionService.userJoinSession(1L, mockSession.getId(), UserSessionRole.OWNER));
 
         assertEquals(HttpStatus.NOT_FOUND, responseException.getStatusCode());
     }

@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -141,7 +142,7 @@ public class SessionControllerTest {
                 SessionUser sampleSessionUser = sampleSessionUser();
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
-                given(sessionService.getAllSessionUser(any(UUID.class)))
+                given(sessionService.getAllSessionUserForAuthorizedUser(any(UUID.class), anyLong()))
                                 .willReturn(Collections.singletonList(sampleSessionUser));
                 MockHttpServletRequestBuilder getRequest = get("/session/{sessionId}", sampleSession().getIdAsString())
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -170,7 +171,8 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.getAllSessionUser(any(UUID.class))).willReturn(Collections.emptyList());
+                given(sessionService.getAllSessionUserForAuthorizedUser(any(UUID.class), anyLong()))
+                                .willReturn(Collections.emptyList());
                 MockHttpServletRequestBuilder getRequest = get("/session/{sessionId}", sampleSession().getIdAsString())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header("Authorization", "Bearer invalid-token")
@@ -198,10 +200,11 @@ public class SessionControllerTest {
         @Test
         public void givenAuthorizedUser_whenPostSession_thenReturnJsonOfCreatedSession() throws Exception {
                 Session session = sampleSession();
-                given(sessionService.createNewSession()).willReturn(session);
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
-                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
+                given(sessionService.createNewSession()).willReturn(session);
+
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -219,13 +222,12 @@ public class SessionControllerTest {
         @Test
         public void givenUnauthorizedUser_whenPostSession_thenThrowUnauthorizedError() throws Exception {
                 Session session = sampleSession();
-                given(sessionService.createNewSession()).willReturn(session);
 
                 given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -239,13 +241,12 @@ public class SessionControllerTest {
         @Test
         public void givenEmptyAuthorization_whenPostSession_thenThrowUnauthorizedError() throws Exception {
                 Session session = sampleSession();
-                given(sessionService.createNewSession()).willReturn(session);
 
                 given(userService.extractBearerToken(anyString())).willReturn(null);
                 given(userService.getAuthorizedTargetUser(null, null))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -258,7 +259,6 @@ public class SessionControllerTest {
         @Test
         public void givenAuthorizedUser_whenPutSession_thenReturnJsonOfJoinedSession() throws Exception {
                 Session session = sampleSession();
-                given(sessionService.createNewSession()).willReturn(session);
 
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
@@ -282,7 +282,6 @@ public class SessionControllerTest {
         @Test
         public void givenUnauthorizedUser_whenPutSession_thenThrowUnauthorizedError() throws Exception {
                 Session session = sampleSession();
-                given(sessionService.createNewSession()).willReturn(session);
 
                 given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
@@ -304,7 +303,6 @@ public class SessionControllerTest {
         @Test
         public void givenEmptyAuthorization_whenPutSession_thenThrowUnauthorizedError() throws Exception {
                 Session session = sampleSession();
-                given(sessionService.createNewSession()).willReturn(session);
 
                 given(userService.extractBearerToken(anyString())).willReturn(null);
                 given(userService.getAuthorizedTargetUser(null, null))

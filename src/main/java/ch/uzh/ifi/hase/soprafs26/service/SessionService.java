@@ -1,8 +1,10 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
+import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
@@ -26,18 +28,25 @@ It includes functions for creating, getting and joining sessions.
 @Transactional
 public class SessionService {
     private static final int EXPIRE_HOURS = 2;
+    private static final int SINGLEPLAYER_TOTAL_ROUNDS = 3;
 
+    private final GameDataRepository gameDataRepository;
     private final SessionRepository sessionRepository;
     private final SessionUserRepository sessionUserRepository;
     private final UserRepository userRepository;
+    private final GooglePanoramaService googlePanoramaService;
 
     public SessionService(
+            GameDataRepository gameDataRepository,
             @Qualifier("sessionRepository") SessionRepository sessionRepository,
             SessionUserRepository sessionUserRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            GooglePanoramaService googlePanoramaService) {
+        this.gameDataRepository = gameDataRepository;
         this.sessionRepository = sessionRepository;
         this.sessionUserRepository = sessionUserRepository;
         this.userRepository = userRepository;
+        this.googlePanoramaService = googlePanoramaService;
     }
 
     public List<Session> getAllSessions() {
@@ -54,7 +63,8 @@ public class SessionService {
         return session;
     }
 
-    public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole UserSessionRole)
+
+    public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole userSessionRole)
             throws ResponseStatusException {
         Session currentSession = this.sessionRepository.findById(sessionId);
         if (currentSession == null) {
@@ -83,7 +93,11 @@ public class SessionService {
                         String.format("User with id %d was not found.", userId))));
         Session session = this.sessionRepository.findById(sessionId);
 
-        if (userSessionRole == UserSessionRole.OWNER) {
+        if (userSessionRole == userSessionRole.OWNER) {
+        if (userSessionRole.equals(UserSessionRole.OWNER)){
+            // Initializes the game if the user is the owner
+            initializeGameDate(currentSession);
+        }
             session = increaseSessionExpiryDate(session);
         }
 
@@ -95,12 +109,34 @@ public class SessionService {
     public List<SessionUser> getAllSessionUser(UUID sessionId) throws ResponseStatusException {
         List<SessionUser> sessionUser = this.sessionUserRepository.findBySessionId(sessionId);
         if (!sessionUser.isEmpty()) {
-            return sessionUserRepository.findBySessionId(sessionId);
+            return sessionUser;
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user to session associated found!");
         }
     }
 
+    public List<SessionUser> getAllSessionUserForAuthorizedUser(UUID sessionId, Long userId)
+            throws ResponseStatusException {
+        this.sessionUserRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session user not found"));
+        return getAllSessionUser(sessionId);
+    }   
+
+    private void initializeGameDate(Session session) {
+        for (int roundNumber = 1; roundNumber <= SINGLEPLAYER_TOTAL_ROUNDS; roundNumber++) {
+            GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
+
+            Game_data gameData = new Game_data();
+            gameData.setSessionId(session.getIdAsString());
+            gameData.setRoundNumber(roundNumber);
+            gameData.setImageUrl(candidate.panoId());
+            gameData.setLatitude(candidate.latitude());
+            gameData.setLongitude(candidate.longitude());
+            gameDataRepository.save(gameData);
+        }
+        gameDataRepository.flush();
+    }
+    
     public Session validateSessionExpiryDate(Session session) {
         if (session.getSessionExpiryDateTime().isAfter(LocalDateTime.now().plusHours(EXPIRE_HOURS))) {
             deleteSession(session);

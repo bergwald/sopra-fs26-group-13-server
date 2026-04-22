@@ -4,9 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
-import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
-import ch.uzh.ifi.hase.soprafs26.rest.dto.GameGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
@@ -14,6 +11,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
 import ch.uzh.ifi.hase.soprafs26.service.GuessEvaluationService;
 import ch.uzh.ifi.hase.soprafs26.service.UserService;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 
 /**
  * User Controller
@@ -28,20 +26,19 @@ public class GameController {
 	private final UserService userService;
 	private final GameService gameService;
 	private final GuessEvaluationService guessEvaluationService;
-	private final SessionRepository sessionRepository;
 
 	GameController(GameService gameService, UserService userService,
-			GuessEvaluationService guessEvaluationService, SessionRepository sessionRepository) {
+			GuessEvaluationService guessEvaluationService) {
 		this.gameService = gameService;
 		this.userService = userService;
 		this.guessEvaluationService = guessEvaluationService;
-		this.sessionRepository = sessionRepository;
 	}
 
 	@GetMapping("/game_data")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public GameDataGetDTO getSessionRoundURL(@RequestBody GameGetDTO gameGetDTOin,
+	public GameDataGetDTO getSessionRoundURL(@RequestParam String sessionId,
+		@RequestParam int roundNumber,
 		@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 		@RequestHeader(value = "userId", required = false) Long userId) {
 		
@@ -49,9 +46,7 @@ public class GameController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 
-		//find game_data info and return propper obj
-		Game_data input = DTOMapper.INSTANCE.convertGameGetDTOToEntity(gameGetDTOin);
-		Game_data output = gameService.getSessionRoundData(input);
+		Game_data output = gameService.getSessionRoundDataForUser(userId, sessionId, roundNumber);
 		return DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(output);
 	}
 
@@ -68,9 +63,14 @@ public class GameController {
 		if (userGuessObj.getUserId() != null && !userGuessObj.getUserId().equals(userId)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User id mismatch");
 		}
+		if (userGuessObj.getRoundNumber() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Round number is required");
+		}
 
-		Game_data lookup = DTOMapper.INSTANCE.convertUserGuessPutDTOToEntity(userGuessObj);
-		Game_data gameData = gameService.getSessionRoundData(lookup);
+		Game_data gameData = gameService.getSessionRoundDataForUser(
+				userGuessObj.getUserId(),
+				userGuessObj.getSessionId(),
+				userGuessObj.getRoundNumber());
 
 		double distance = guessEvaluationService.computeDistanceKm(userGuessObj.getLatitude(),
 				userGuessObj.getLongitude(), gameData.getLatitude(), gameData.getLongitude());
@@ -78,6 +78,7 @@ public class GameController {
 
 		
 		long scoreOverall = gameService.saveScore(userGuessObj.getUserId(), scoreRound, userGuessObj.getSessionId());
+		gameService.advanceSinglePlayerRound(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
 
 		return DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, distance, scoreRound, scoreOverall);
 	}

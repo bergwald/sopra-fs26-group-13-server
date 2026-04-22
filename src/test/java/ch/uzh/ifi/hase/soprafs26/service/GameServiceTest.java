@@ -7,6 +7,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
+import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
 
 import org.springframework.http.HttpStatus;
@@ -27,13 +28,15 @@ public class GameServiceTest {
 
 	private GameDataRepository gameDataRepository;
 	private SessionUserRepository sessionUserRepository;
+	private SessionRepository sessionRepository;
 	private GameService gameService;
 
 	@Test
 	public void getSessionRoundData_valid() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
-		gameService = new GameService(gameDataRepository, sessionUserRepository);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
 
 		Game_data gameDataOut = new Game_data();
 		gameDataOut.setSessionId("SessionId1234");
@@ -56,7 +59,8 @@ public class GameServiceTest {
 	public void saveScore_addsRoundScoreToExistingTotal() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
-		gameService = new GameService(gameDataRepository, sessionUserRepository);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
 
 		UUID sessionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		User user = new User();
@@ -81,7 +85,8 @@ public class GameServiceTest {
 	public void saveScore_invalidSessionId_throwsBadRequest() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
-		gameService = new GameService(gameDataRepository, sessionUserRepository);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
 
 		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
 				() -> gameService.saveScore(1L, 5, "not-a-uuid"));
@@ -92,7 +97,8 @@ public class GameServiceTest {
 	public void saveScore_sessionUserMissing_throwsNotFound() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
-		gameService = new GameService(gameDataRepository, sessionUserRepository);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
 
 		UUID sessionId = UUID.fromString("22222222-2222-2222-2222-222222222222");
 		when(sessionUserRepository.findByUserIdAndSessionId(1L, sessionId)).thenReturn(Optional.empty());
@@ -106,7 +112,8 @@ public class GameServiceTest {
 	public void saveScore_returnsPersistedScore() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
-		gameService = new GameService(gameDataRepository, sessionUserRepository);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
 
 		UUID sessionId = UUID.fromString("33333333-3333-3333-3333-333333333333");
 		SessionUser sessionUser = new SessionUser();
@@ -115,5 +122,55 @@ public class GameServiceTest {
 				.thenReturn(Optional.of(sessionUser));
 
 		assertEquals(52L, gameService.saveScore(3L, 10, sessionId.toString()));
+	}
+
+	@Test
+	public void getSessionRoundDataForUser_requiresMembership() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("44444444-4444-4444-4444-444444444444");
+		when(sessionUserRepository.findByUserIdAndSessionId(1L, sessionId)).thenReturn(Optional.empty());
+
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> gameService.getSessionRoundDataForUser(1L, sessionId.toString(), 1));
+		assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+	}
+
+	@Test
+	public void advanceSinglePlayerRound_movesToNextRound() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("55555555-5555-5555-5555-555555555555");
+		Session session = new Session();
+		session.setId(sessionId);
+		session.setRoundNumber(2);
+		when(sessionRepository.findById(sessionId)).thenReturn(session);
+
+		assertEquals(3, gameService.advanceSinglePlayerRound(sessionId.toString(), 2));
+		assertEquals(3, session.getRoundNumber());
+		verify(sessionRepository).save(session);
+	}
+
+	@Test
+	public void advanceSinglePlayerRound_marksSessionFinishedAfterFinalRound() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("66666666-6666-6666-6666-666666666666");
+		Session session = new Session();
+		session.setId(sessionId);
+		session.setRoundNumber(3);
+		when(sessionRepository.findById(sessionId)).thenReturn(session);
+
+		assertEquals(4, gameService.advanceSinglePlayerRound(sessionId.toString(), 3));
+		assertEquals(4, session.getRoundNumber());
 	}
 }
