@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -37,12 +38,12 @@ public class SessionServiceTest {
     private SessionRepository sessionRepository;
     private SessionUserRepository sessionUserRepository;
     private UserRepository userRepository;
-        private GooglePanoramaService googlePanoramaService;
+    private GooglePanoramaService googlePanoramaService;
 
     private SessionService sessionService;
 
     private Session mockSession;
-    
+
     private User mockUser;
     private SessionUser mockSessionUser;
 
@@ -93,7 +94,7 @@ public class SessionServiceTest {
     void testCreateNewSession() {
         when(sessionRepository.save(any(Session.class))).thenReturn(mockSession);
 
-        Session newSession = sessionService.createNewSession();
+        Session newSession = sessionService.createNewSession(0L);
 
         assertNotNull(newSession);
         assertEquals(0, newSession.getRoundNumber());
@@ -173,14 +174,14 @@ public class SessionServiceTest {
         assertEquals("No user to session associated found!", responseException.getReason());
     }
 
-    @Test 
-    void testValidateSessionExpiryDate_valid(){
+    @Test
+    void testValidateSessionExpiryDate_valid() {
         Session returnedSession = sessionService.validateSessionExpiryDate(mockSession);
         assertEquals(returnedSession, mockSession);
     }
-    
-    @Test 
-    void testValidateSessionExpiryDate_invalid(){
+
+    @Test
+    void testValidateSessionExpiryDate_invalid() {
         mockSession.setSessionExpiryDateTime(LocalDateTime.now().plusHours(2).plusMinutes(1));
         doNothing().when(sessionUserRepository).delete(any(SessionUser.class));
         doNothing().when(sessionRepository).delete(any(Session.class));
@@ -189,4 +190,27 @@ public class SessionServiceTest {
                 () -> sessionService.validateSessionExpiryDate(mockSession));
         assertEquals(HttpStatus.FORBIDDEN, responseException.getStatusCode());
     }
+
+    @Test
+    void testCleanUpSessionBeforeCreating_nonOwnerDeletesSessionUser() {
+        SessionUser su = new SessionUser();
+        su.setUserRole(UserSessionRole.PLAYER);
+        when(sessionUserRepository.findById(mockUser.getId())).thenReturn(Optional.of(su));
+
+        sessionService.cleanUpSessionBeforeCreating(mockUser.getId());
+
+        verify(sessionUserRepository).delete(su);
+        verify(sessionRepository, never()).delete(any());
+    }
+
+    @Test
+    void testCleanUpSessionBeforeCreating_notFoundDoesNothing() {
+        when(sessionUserRepository.findById(mockUser.getId())).thenReturn(Optional.empty());
+
+        sessionService.cleanUpSessionBeforeCreating(mockUser.getId());
+
+        verify(sessionUserRepository, never()).delete(any());
+        verify(sessionRepository, never()).delete(any());
+    }
+
 }
