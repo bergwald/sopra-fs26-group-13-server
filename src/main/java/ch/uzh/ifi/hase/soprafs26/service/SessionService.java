@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
@@ -53,7 +54,8 @@ public class SessionService {
         return this.sessionRepository.findAll();
     }
 
-    public Session createNewSession() {
+    public Session createNewSession(Long userId) {
+        cleanUpSessionBeforeCreating(userId);
         Session session = new Session();
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(EXPIRE_HOURS);
         session.setSessionExpiryDateTime(expiryDate);
@@ -77,7 +79,12 @@ public class SessionService {
                             sessionId.toString()));
         }
         SessionUser sessionUser = sessionUserRepository.findById(userId)
-                .orElse(createNewSessionUser(userId, sessionId, UserSessionRole));
+                .orElse(createNewSessionUser(userId, sessionId, userSessionRole));
+
+        if (userSessionRole.equals(UserSessionRole.OWNER)){
+            // Initializes the game if the user is the owner
+            initializeGameDate(currentSession);
+        }
 
         this.sessionUserRepository.save(sessionUser);
         this.sessionUserRepository.flush();
@@ -93,11 +100,7 @@ public class SessionService {
                         String.format("User with id %d was not found.", userId))));
         Session session = this.sessionRepository.findById(sessionId);
 
-        if (userSessionRole == userSessionRole.OWNER) {
-        if (userSessionRole.equals(UserSessionRole.OWNER)){
-            // Initializes the game if the user is the owner
-            initializeGameDate(currentSession);
-        }
+        if (userSessionRole == UserSessionRole.OWNER) {
             session = increaseSessionExpiryDate(session);
         }
 
@@ -115,28 +118,6 @@ public class SessionService {
         }
     }
 
-    public List<SessionUser> getAllSessionUserForAuthorizedUser(UUID sessionId, Long userId)
-            throws ResponseStatusException {
-        this.sessionUserRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session user not found"));
-        return getAllSessionUser(sessionId);
-    }   
-
-    private void initializeGameDate(Session session) {
-        for (int roundNumber = 1; roundNumber <= SINGLEPLAYER_TOTAL_ROUNDS; roundNumber++) {
-            GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
-
-            Game_data gameData = new Game_data();
-            gameData.setSessionId(session.getIdAsString());
-            gameData.setRoundNumber(roundNumber);
-            gameData.setImageUrl(candidate.panoId());
-            gameData.setLatitude(candidate.latitude());
-            gameData.setLongitude(candidate.longitude());
-            gameDataRepository.save(gameData);
-        }
-        gameDataRepository.flush();
-    }
-    
     public Session validateSessionExpiryDate(Session session) {
         if (session.getSessionExpiryDateTime().isAfter(LocalDateTime.now().plusHours(EXPIRE_HOURS))) {
             deleteSession(session);
@@ -170,4 +151,37 @@ public class SessionService {
         }
     }
 
+    public List<SessionUser> getAllSessionUserForAuthorizedUser(UUID sessionId, Long userId)
+            throws ResponseStatusException {
+        this.sessionUserRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Session user not found"));
+        return getAllSessionUser(sessionId);
+    }   
+
+    private void initializeGameDate(Session session) {
+        for (int roundNumber = 1; roundNumber <= SINGLEPLAYER_TOTAL_ROUNDS; roundNumber++) {
+            GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
+
+            Game_data gameData = new Game_data();
+            gameData.setSessionId(session.getIdAsString());
+            gameData.setRoundNumber(roundNumber);
+            gameData.setImageUrl(candidate.panoId());
+            gameData.setLatitude(candidate.latitude());
+            gameData.setLongitude(candidate.longitude());
+            gameDataRepository.save(gameData);
+        }
+        gameDataRepository.flush();
+    }
+
+    public void cleanUpSessionBeforeCreating(Long userId) {
+        Optional<SessionUser> sessionUser = sessionUserRepository.findById(userId);
+        if (sessionUser.isPresent()) {
+            if (sessionUser.get().getUserRole() == UserSessionRole.OWNER) {
+                deleteSession(sessionUser.get().getSession());
+            } else {
+                this.sessionUserRepository.delete(sessionUser.get());
+            }
+        }
+    }
+    
 }
