@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -201,7 +202,9 @@ public class SessionControllerTest {
                 Session session = sampleSession();
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
-                given(sessionService.createSinglePlayerSession(anyLong())).willReturn(session);
+                given(sessionService.createNewSession()).willReturn(session);
+
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -224,7 +227,7 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.createSinglePlayerSession(anyLong())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -243,7 +246,7 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(null, null))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.createSinglePlayerSession(anyLong())).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);

@@ -13,7 +13,7 @@ public class SessionUserTest {
 		Field userId = SessionUser.class.getDeclaredField("user");
 		Field session = SessionUser.class.getDeclaredField("session");
 
-        assertTrue(userId.isAnnotationPresent(jakarta.persistence.ManyToOne.class));
+        assertTrue(userId.isAnnotationPresent(jakarta.persistence.OneToOne.class));
         assertTrue(session.isAnnotationPresent(jakarta.persistence.ManyToOne.class));
 	}
     

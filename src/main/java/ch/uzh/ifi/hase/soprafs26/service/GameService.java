@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
@@ -29,9 +30,12 @@ public class GameService {
         this.gameDataRepository = gameDataRepository;
         this.sessionUserRepository = sessionUserRepository;
         this.sessionRepository = sessionRepository;
+
     }
-    public Game_data getSessionRoundData(Game_data gameData){
-        Game_data foundData = gameDataRepository.findBySessionIdAndRoundNumber(gameData.getSessionId(), gameData.getRoundNumber());
+
+    public Game_data getSessionRoundData(Game_data gameData) {
+        Game_data foundData = gameDataRepository.findBySessionIdAndRoundNumber(gameData.getSessionId(),
+                gameData.getRoundNumber());
         if (foundData == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game data not found");
         }
@@ -40,7 +44,8 @@ public class GameService {
 
     public Game_data getSessionRoundDataForUser(Long userId, String sessionId, int roundNumber) {
         UUID sessionUuid = parseSessionId(sessionId);
-        requireSessionMembership(userId, sessionUuid);
+        SessionUser currentSessionUser = requireSessionMembership(userId, sessionUuid);
+        roundNumber = updateStartingRoundNumber(currentSessionUser, roundNumber, sessionUuid);
 
         Game_data lookup = new Game_data();
         lookup.setSessionId(sessionId);
@@ -49,7 +54,8 @@ public class GameService {
     }
 
     /**
-     * Adds {@code roundScore} to the {@link SessionUser} score for the given user and session.
+     * Adds {@code roundScore} to the {@link SessionUser} score for the given user
+     * and session.
      */
     public long saveScore(Long userId, int roundScore, String sessionId) {
         UUID sessionUuid = parseSessionId(sessionId);
@@ -92,6 +98,23 @@ public class GameService {
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
         }
+    }
+
+    private int updateStartingRoundNumber(SessionUser currentSessionUser, int roundNumber, UUID sessionId) {
+        /*
+         * Lets the owner start the game by increasing the round number from 0 (which is
+         * used for the initialization)
+         * to 1, which is the first round.
+         */
+        if (currentSessionUser.getUserRole().equals(UserSessionRole.OWNER) && roundNumber == 0) {
+            Session session = sessionRepository.findById(sessionId);
+            session.setRoundNumber(1);
+            sessionRepository.save(session);
+            sessionRepository.flush();
+            return 1;
+        }
+        ;
+        return roundNumber;
     }
 
 }
