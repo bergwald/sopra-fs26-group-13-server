@@ -37,6 +37,7 @@ public class SessionUserRepositoryIntegrationTest {
         Session session = new Session();
         session.setRoundNumber(0);
         session.setSessionExpiryDateTime(currentDateTime);
+        session.setRoundStartedDateTime(currentDateTime);
 
         entityManager.persist(user);
         entityManager.persist(session);

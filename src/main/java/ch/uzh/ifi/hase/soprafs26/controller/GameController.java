@@ -94,7 +94,7 @@ public class GameController {
 		}
 
 		long scoreOverall = gameService.saveScore(userGuessObj.getUserId(), scoreRound, userGuessObj.getSessionId());
-		gameService.advanceSinglePlayerRound(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
+		gameService.validateSessionGameGuess(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
 
 		return DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, distance, scoreRound, scoreOverall);
 	}
