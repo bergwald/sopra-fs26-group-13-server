@@ -158,7 +158,7 @@ public class SessionService {
         return getAllSessionUser(sessionId);
     }   
 
-    private void initializeGameDate(Session session) {
+    public void initializeGameDate(Session session) {
         for (int roundNumber = 1; roundNumber <= SINGLEPLAYER_TOTAL_ROUNDS; roundNumber++) {
             GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
 
