@@ -94,7 +94,8 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 		validateBodyUserId(userId, sessionPost.getUserId());
-		Session createdSession = sessionService.createNewSession();
+
+		Session createdSession = sessionService.createNewSession(sessionPost.getUserId());
 		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId(), UserSessionRole.OWNER);
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
