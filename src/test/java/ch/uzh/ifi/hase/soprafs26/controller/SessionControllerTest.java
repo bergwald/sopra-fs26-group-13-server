@@ -199,10 +199,11 @@ public class SessionControllerTest {
 
         @Test
         public void givenAuthorizedUser_whenPostSession_thenReturnJsonOfCreatedSession() throws Exception {
+                User mockUser = sampleUser();
                 Session session = sampleSession();
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
-                given(sessionService.createNewSession()).willReturn(session);
+                given(sessionService.createNewSession(mockUser.getId())).willReturn(session);
 
                 given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
 
