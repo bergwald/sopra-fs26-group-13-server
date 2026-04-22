@@ -5,13 +5,14 @@ import java.time.LocalDateTime;
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 
 public class SessionUserDetailsGetDTO {
-    
+
     private Long id;
     private String sessionId;
     private LocalDateTime sessionExpiryDateTime;
     private Integer roundNumber;
     private Long score;
     private UserSessionRole userRole;
+    private LocalDateTime roundStartedDateTime;
 
     public Long getId() {
         return this.id;
@@ -59,6 +60,14 @@ public class SessionUserDetailsGetDTO {
 
     public void setUserRole(UserSessionRole userRole) {
         this.userRole = userRole;
+    }
+
+    public LocalDateTime getRoundStartedDateTime() {
+        return roundStartedDateTime;
+    }
+
+    public void setRoundStartedDateTime(LocalDateTime roundStartedDateTime) {
+        this.roundStartedDateTime = roundStartedDateTime;
     }
 
 }
