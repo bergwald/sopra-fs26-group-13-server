@@ -82,6 +82,7 @@ public class GameService {
         return submittedRoundNumber + 1;
     }
 
+/*  NOT IN USE - Written by someone else, therefore not yet deleted
     public int increaseSessionRoundNumber(Session session, int submittedRoundNumber, int totalRoundNumbers) {
         int nextRoundNumber = submittedRoundNumber < totalRoundNumbers
                 ? submittedRoundNumber + 1
@@ -89,7 +90,7 @@ public class GameService {
         session.setRoundNumber(nextRoundNumber);
         sessionRepository.save(session);
         return nextRoundNumber;
-    }
+    }*/
 
     private SessionUser requireSessionMembership(Long userId, UUID sessionUuid) {
         return sessionUserRepository.findByUserIdAndSessionId(userId, sessionUuid)
