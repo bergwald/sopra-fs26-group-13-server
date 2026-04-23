@@ -26,7 +26,43 @@ public class SessionUserRepositoryIntegrationTest {
     private SessionUserRepository sessionUserRepository;
 
     @Test
-    public void findByUserId_success() {
+    public void testFindSessionUserByUserId_success() {
+        User user = new User();
+        user.setUsername("firstname@lastname");
+        user.setBio("Short bio");
+        user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
+        user.setStatus(UserStatus.OFFLINE);
+        user.setToken("1");
+        LocalDateTime currentDateTime = LocalDateTime.of(2026, 1, 1, 8, 30, 00);
+        Session session = new Session();
+        session.setRoundNumber(0);
+        session.setSessionExpiryDateTime(currentDateTime);
+        session.setRoundStartedDateTime(currentDateTime);
+
+        entityManager.persist(user);
+        entityManager.persist(session);
+        entityManager.flush();
+
+        SessionUser sessionUser = new SessionUser();
+
+        sessionUser.setUser(user);
+        sessionUser.setSession(session);
+
+        entityManager.persist(sessionUser);
+        entityManager.flush();
+
+        SessionUser foundSessionUser = sessionUserRepository.findById(user.getId())
+                .orElseThrow(() -> new AssertionError("SessionUser not found for user id " + user.getId()));
+        ;
+        assertNotNull(foundSessionUser);
+        assertEquals(user.getId(), foundSessionUser.getUser().getId());
+        assertEquals(session.getId(), foundSessionUser.getSession().getId());
+        assertEquals(0L, foundSessionUser.getScore());
+        assertEquals(UserSessionRole.OWNER, foundSessionUser.getUserRole());
+    }
+
+    @Test
+    public void testFindSessionUserByUserIdAndSessionId_success() {
         User user = new User();
         user.setUsername("firstname@lastname");
         user.setBio("Short bio");
