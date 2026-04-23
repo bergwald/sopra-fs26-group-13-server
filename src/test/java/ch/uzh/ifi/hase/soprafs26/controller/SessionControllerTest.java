@@ -198,6 +198,54 @@ public class SessionControllerTest {
         }
 
         @Test
+        public void givenValidOwnerAndValidToken_whenIncreaseRoundNumber_thenReturnIncreasedRoundNumber()
+                        throws Exception {
+                User user = sampleUser();
+                Session session = sampleSession();
+
+                given(userService.extractBearerToken("Bearer valid-token")).willReturn("valid-token");
+                given(userService.getAuthorizedTargetUser(user.getId(), "valid-token")).willReturn(new User());
+                given(sessionService.checkIfUserIsSessionOwner(user.getId(), session.getIdAsString())).willReturn(true);
+                given(sessionService.getSessionWithId(session.getIdAsString())).willReturn(session);
+                given(sessionService.increaseSessionRoundNumber(session, session.getRoundNumber(), 3))
+                                .willReturn(2);
+
+                MockHttpServletRequestBuilder putRequest = put("/session/{sessionId}/increaseRoundNumber",
+                                session.getIdAsString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("currentRoundNumber", String.valueOf(session.getRoundNumber()))
+                                .header("Authorization", "Bearer valid-token")
+                                .header("userId", String.valueOf(user.getId()));
+
+                mockMvc.perform(putRequest)
+                                .andExpect(status().isOk());
+        }
+
+        @Test
+        public void givenInvalidOwnerAndValidToken_whenIncreaseRoundNumber_thenThrowForbiddenError() throws Exception {
+                User user = sampleUser();
+                Session session = sampleSession();
+
+                given(userService.extractBearerToken("Bearer valid-token")).willReturn("valid-token");
+                given(userService.getAuthorizedTargetUser(user.getId(), "valid-token")).willReturn(new User());
+                given(sessionService.checkIfUserIsSessionOwner(user.getId(), session.getIdAsString()))
+                                .willReturn(false);
+                given(sessionService.getSessionWithId(session.getIdAsString())).willReturn(session);
+                given(sessionService.increaseSessionRoundNumber(session, session.getRoundNumber(), 3))
+                                .willReturn(2);
+
+                MockHttpServletRequestBuilder putRequest = put("/session/{sessionId}/increaseRoundNumber",
+                                session.getIdAsString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .param("currentRoundNumber", String.valueOf(session.getRoundNumber()))
+                                .header("Authorization", "Bearer valid-token")
+                                .header("userId", String.valueOf(user.getId()));
+
+                mockMvc.perform(putRequest)
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
         public void givenAuthorizedUser_whenPostSession_thenReturnJsonOfCreatedSession() throws Exception {
                 User mockUser = sampleUser();
                 Session session = sampleSession();
@@ -205,7 +253,8 @@ public class SessionControllerTest {
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
                 given(sessionService.createNewSession(mockUser.getId())).willReturn(session);
 
-                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class)))
+                                .willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -228,7 +277,8 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class)))
+                                .willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);
@@ -247,7 +297,8 @@ public class SessionControllerTest {
                 given(userService.getAuthorizedTargetUser(null, null))
                                 .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                                 "The provided token is invalid."));
-                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class))).willReturn(session);
+                given(sessionService.userJoinSession(anyLong(), any(UUID.class), any(UserSessionRole.class)))
+                                .willReturn(session);
 
                 SessionPostDTO sessionPost = new SessionPostDTO();
                 sessionPost.setUserId(1L);

@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -57,7 +58,7 @@ public class GooglePanoramaService {
         this(
                 googleMapsHttpClient,
                 googleMapsApiKeyProvider,
-                new Random(),
+                new SecureRandom(),
                 DEFAULT_SEARCH_REGIONS,
                 elevationEndpoint,
                 streetViewMetadataEndpoint,
@@ -106,7 +107,8 @@ public class GooglePanoramaService {
             }
         }
 
-        throw new ResponseStatusException(NOT_FOUND, "No Street View panorama found in the configured mountain regions.");
+        throw new ResponseStatusException(NOT_FOUND,
+                "No Street View panorama found in the configured mountain regions.");
     }
 
     private GooglePanoramaCandidate tryFindPanoramaInRegion(SearchRegion region, String apiKey) {
