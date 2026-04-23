@@ -254,8 +254,6 @@ public class SessionServiceTest {
     @Test
     void testGetAllSessionUserForAuthorizedUser_invalid() {
         List<SessionUser> mockedSessionUsers = Collections.singletonList(mockSessionUser);
-
-        // when(sessionUserRepository.findById(mockSessionUser.getUser().getId())).thenReturn(Optional.of(mockSessionUser));
         when(sessionUserRepository.findBySessionId(mockSession.getId())).thenReturn(mockedSessionUsers);
         when(sessionService.getAllSessionUser(mockSession.getId())).thenReturn(mockedSessionUsers);
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
@@ -322,6 +320,108 @@ public class SessionServiceTest {
     }
 
     @Test
+    void testGetSessionWithId_valid() {
+        when(sessionRepository.findById(mockSession.getId())).thenReturn(mockSession);
+        Session foundSession = sessionService.getSessionWithId(mockSession.getIdAsString());
+        assertEquals(mockSession, foundSession);
+    }
+
+    @Test
+    void testGetSessionWithId_sessionNotFoundWithMessage() {
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.getSessionWithId("invalid-session");
+        });
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Test
+    void testIncreaseSessionRoundNumber_validIncrease() {
+        mockSession.setRoundNumber(1);
+        int result = sessionService.increaseSessionRoundNumber(mockSession, mockSession.getRoundNumber(), 5);
+
+        assertEquals(2, result);
+        assertEquals(2, mockSession.getRoundNumber());
+        assertNotNull(mockSession.getRoundStartedDateTime());
+        verify(sessionRepository).save(mockSession);
+    }
+
+    @Test
+    void testIncreaseSessionRoundNumber_validLastRound() {
+        mockSession.setRoundNumber(5);
+        int result = sessionService.increaseSessionRoundNumber(mockSession, mockSession.getRoundNumber(), 5);
+
+        assertEquals(6, result);
+        assertEquals(6, mockSession.getRoundNumber());
+        assertNotNull(mockSession.getRoundStartedDateTime());
+        verify(sessionRepository).save(mockSession);
+    }
+
+    @Test
+    void testIncreaseSessionRoundNumber_invalidHighRoundNumber() {
+        mockSession.setRoundNumber(99);
+        int result = sessionService.increaseSessionRoundNumber(mockSession, mockSession.getRoundNumber(), 5);
+
+        assertEquals(6, result);
+        assertEquals(6, mockSession.getRoundNumber());
+        assertNotNull(mockSession.getRoundStartedDateTime());
+        verify(sessionRepository).save(mockSession);
+    }
+
+    @Test
+    void testValidateSessionGameGuess_valid() {
+        mockSession.setRoundNumber(1);
+        when(sessionRepository.findById(mockSession.getId())).thenReturn(mockSession);
+        sessionService.validateSessionGameGuess(mockSession.getIdAsString(), mockSession.getRoundNumber());
+        verify(sessionRepository).findById(mockSession.getId());
+    }
+
+    @Test
+    void testValidateSessionGameGuess_invalidSession() {
+        when(sessionRepository.findById(mockSession.getId())).thenReturn(null);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.validateSessionGameGuess(mockSession.getIdAsString(), mockSession.getRoundNumber());
+        });
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Test
+    void testValidateSessionGameGuess_invalidRoundNumber() {
+        mockSession.setRoundNumber(1);
+        when(sessionRepository.findById(mockSession.getId())).thenReturn(mockSession);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.validateSessionGameGuess(mockSession.getIdAsString(), 2);
+        });
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Session round is out of sync", exception.getReason());
+
+    }
+
+    @Test
+    void testValidateSessionGameGuess_invalidRoundNumberBelowOne() {
+        mockSession.setRoundNumber(0);
+        when(sessionRepository.findById(mockSession.getId())).thenReturn(mockSession);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.validateSessionGameGuess(mockSession.getIdAsString(), mockSession.getRoundNumber());
+        });
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Invalid round number", exception.getReason());
+
+    }
+
+    @Test
+    void testValidateSessionGameGuess_invalidRoundNumberTooHighRound() {
+        mockSession.setRoundNumber(999);
+        when(sessionRepository.findById(mockSession.getId())).thenReturn(mockSession);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.validateSessionGameGuess(mockSession.getIdAsString(), mockSession.getRoundNumber());
+        });
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Invalid round number", exception.getReason());
+
+    }
+
+    @Test
     void testCleanUpSessionBeforeCreating_nonOwnerDeletesSessionUser() {
         SessionUser su = new SessionUser();
         su.setUserRole(UserSessionRole.PLAYER);
@@ -341,6 +441,30 @@ public class SessionServiceTest {
 
         verify(sessionUserRepository, never()).delete(any());
         verify(sessionRepository, never()).delete(any());
+    }
+
+    @Test
+    void testCleanUpSessionBeforeCreating_userRoleOwner() {
+        SessionUser su = new SessionUser();
+        su.setUserRole(UserSessionRole.OWNER);
+        su.setSession(mockSession);
+        List<SessionUser> mockedSessionUsers = Collections.singletonList(su);
+        when(sessionUserRepository.findBySessionId(mockSession.getId())).thenReturn(mockedSessionUsers);
+        when(sessionService.getAllSessionUser(mockSession.getId())).thenReturn(mockedSessionUsers);
+
+        when(sessionUserRepository.findById(mockUser.getId())).thenReturn(Optional.of(su));
+
+        sessionService.cleanUpSessionBeforeCreating(mockUser.getId());
+
+        doNothing().when(sessionUserRepository).delete(mockSessionUser);
+        doNothing().when(sessionUserRepository).flush();
+        doNothing().when(sessionRepository).delete(su.getSession());
+        doNothing().when(sessionRepository).flush();
+
+        verify(sessionUserRepository).delete(su);
+        verify(sessionUserRepository).flush();
+        verify(sessionRepository).delete(su.getSession());
+        verify(sessionRepository).flush();
     }
 
 }
