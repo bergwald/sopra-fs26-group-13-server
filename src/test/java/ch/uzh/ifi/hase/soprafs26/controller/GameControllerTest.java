@@ -3,8 +3,11 @@ package ch.uzh.ifi.hase.soprafs26.controller;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
+
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
@@ -63,17 +66,17 @@ public class GameControllerTest {
 
 
 	private User sampleUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("testUsername");
-        user.setBio("Some bio");
-        user.setPasswordHash("123213123");
-        user.setToken("1");
-        user.setStatus(UserStatus.ONLINE);
-        return user;
+                User user = new User();
+                user.setId(1L);
+                user.setUsername("testUsername");
+                user.setBio("Some bio");
+                user.setPasswordHash("123213123");
+                user.setToken("1");
+                user.setStatus(UserStatus.ONLINE);
+                return user;
     }
 
-    /* TODO: FIX TEST 
+    /* TODO: FIX TEST */
     @Test
     void givenAuthorizedUser_whenGetGameData_thenReturnJson() throws Exception {
         Game_data gameData = new Game_data();
@@ -83,9 +86,15 @@ public class GameControllerTest {
         gameData.setLatitude(4.0f);
         gameData.setRoundNumber(3);
 
+        Session session = new Session();
+        session.setRoundNumber(1);
+        session.setRoundStartedDateTime(LocalDateTime.now());
+        session.setSessionExpiryDateTime(LocalDateTime.now().plusHours(1));
+
         given(userService.extractBearerToken(anyString())).willReturn("valid-token");
         given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
         given(gameService.getSessionRoundDataForUser(1L, "SessionId1234", 3)).willReturn(gameData);
+        given(sessionService.getSessionWithId("SessionId1234")).willReturn(session);
 
         MockHttpServletRequestBuilder getRequest = get("/game_data")
                 .queryParam("sessionId", "SessionId1234")
@@ -99,7 +108,7 @@ public class GameControllerTest {
                 .andExpect(jsonPath("$.roundNumber", is(gameData.getRoundNumber())))
                 .andExpect(jsonPath("$.sessionId", is(gameData.getSessionId())));
     }
-
+/*
     @Test
     void givenUnauthorizedUser_whenGetGameData_thenReturnUnauthorized() throws Exception {
         given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
@@ -176,7 +185,74 @@ public class GameControllerTest {
 				.andExpect(status().isForbidden());
 	}
 
-	private String asJsonString(final Object object) {
+        @Test
+        public void makeGuess_roundNuberNull_400() throws Exception {
+                given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+		given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+
+		UserGuessPutDTO body = new UserGuessPutDTO();
+		body.setUserId(1L);
+		body.setSessionId("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+		body.setLatitude(11.0);
+		body.setLongitude(21.0);
+
+		MockHttpServletRequestBuilder putRequest = put("/submit_guess")
+				.header("Authorization", "Bearer token")
+				.header("userId", "1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(body));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isBadRequest());
+        }       
+
+        @Test
+        public void makeGuess_LatLongNotSet() throws Exception {
+                UserGuessPutDTO userGuess = new UserGuessPutDTO();
+                userGuess.setUserId(1L);
+		userGuess.setSessionId("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+		userGuess.setRoundNumber(1);
+		userGuess.setLatitude(-1.0);
+		userGuess.setLongitude(-1.0);
+
+                Game_data gameData = new Game_data();
+		gameData.setLatitude(10.0f);
+		gameData.setLongitude(20.0f);
+
+		given(gameService.getSessionRoundDataForUser(1L, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", 1))
+				.willReturn(gameData);
+		given(gameService.validateSessionGameGuess("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", 1)).willReturn(2);
+		given(guessEvaluationService.computeScore(0)).willReturn(0);
+		given(gameService.saveScore(1L, 0, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")).willReturn(0L);
+                
+                MockHttpServletRequestBuilder putRequest = put("/submit_guess")
+				.header("Authorization", "Bearer token")
+				.header("userId", "1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(userGuess));
+
+		mockMvc.perform(putRequest)
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.scoreRound", is(0)))
+				.andExpect(jsonPath("$.distance", is(-1.0)));
+        }
+        @Test
+        void givenMissingGameData_whenGetGameData_thenReturnNotFound() throws Exception {
+                given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+                given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+                given(gameService.getSessionRoundDataForUser(1L, "SessionId1234", 3))
+                        .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Game data not found"));
+
+                MockHttpServletRequestBuilder getRequest = get("/game_data")
+                        .queryParam("sessionId", "SessionId1234")
+                        .queryParam("roundNumber", "3")
+                        .header("Authorization", "Bearer valid-token")
+                        .header("userId", 1L);
+
+                mockMvc.perform(getRequest).andExpect(status().isNotFound());
+        }
+
+        private String asJsonString(final Object object) {
         try {
             return new ObjectMapper().writeValueAsString(object);
         } catch (JacksonException e) {
@@ -184,21 +260,4 @@ public class GameControllerTest {
                     String.format("The request body could not be created.%s", e.toString()));
         }
 	}
-
-
-    @Test
-    void givenMissingGameData_whenGetGameData_thenReturnNotFound() throws Exception {
-        given(userService.extractBearerToken(anyString())).willReturn("valid-token");
-        given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
-        given(gameService.getSessionRoundDataForUser(1L, "SessionId1234", 3))
-                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Game data not found"));
-
-        MockHttpServletRequestBuilder getRequest = get("/game_data")
-                .queryParam("sessionId", "SessionId1234")
-                .queryParam("roundNumber", "3")
-                .header("Authorization", "Bearer valid-token")
-                .header("userId", 1L);
-
-        mockMvc.perform(getRequest).andExpect(status().isNotFound());
-    }
 }
