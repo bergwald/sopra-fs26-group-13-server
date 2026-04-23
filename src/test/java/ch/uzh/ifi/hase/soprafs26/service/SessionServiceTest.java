@@ -1,8 +1,10 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -24,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
+import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
@@ -189,6 +192,133 @@ public class SessionServiceTest {
         ResponseStatusException responseException = assertThrows(ResponseStatusException.class,
                 () -> sessionService.validateSessionExpiryDate(mockSession));
         assertEquals(HttpStatus.FORBIDDEN, responseException.getStatusCode());
+    }
+
+    @Test
+    void testIncreaseSessionExpiryDate() {
+        LocalDateTime beforeCall = LocalDateTime.now();
+
+        Session result = sessionService.increaseSessionExpiryDate(mockSession);
+
+        LocalDateTime afterCall = LocalDateTime.now();
+
+        assertTrue(result.getSessionExpiryDateTime().isAfter(beforeCall.plusHours(2)));
+        assertTrue(result.getSessionExpiryDateTime().isBefore(afterCall.plusHours(2).plusSeconds(1)));
+        assertEquals(result, mockSession);
+    }
+
+    @Test
+    void testDeleteSession_success() {
+        List<SessionUser> mockedSessionUsers = Collections.singletonList(mockSessionUser);
+        when(sessionUserRepository.findBySessionId(mockSession.getId())).thenReturn(mockedSessionUsers);
+        when(sessionService.getAllSessionUser(mockSession.getId())).thenReturn(mockedSessionUsers);
+        doNothing().when(sessionUserRepository).delete(mockSessionUser);
+        doNothing().when(sessionUserRepository).flush();
+        doNothing().when(sessionRepository).delete(mockSession);
+        doNothing().when(sessionRepository).flush();
+
+        boolean result = sessionService.deleteSession(mockSession);
+
+        verify(sessionUserRepository).delete(mockSessionUser);
+        verify(sessionUserRepository).flush();
+        verify(sessionRepository).delete(mockSession);
+        verify(sessionRepository).flush();
+        assertTrue(result);
+    }
+
+    @Test
+    void testDeleteSession_failNoSessionUserFound() {
+        doNothing().when(sessionUserRepository).delete(mockSessionUser);
+        doNothing().when(sessionUserRepository).flush();
+        doNothing().when(sessionRepository).delete(mockSession);
+        doNothing().when(sessionRepository).flush();
+
+        boolean result = sessionService.deleteSession(mockSession);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void testGetAllSessionUserForAuthorizedUser_valid() {
+        List<SessionUser> mockedSessionUsers = Collections.singletonList(mockSessionUser);
+
+        when(sessionUserRepository.findById(mockSessionUser.getUser().getId()))
+                .thenReturn(Optional.of(mockSessionUser));
+        when(sessionUserRepository.findBySessionId(mockSession.getId())).thenReturn(mockedSessionUsers);
+        when(sessionService.getAllSessionUser(mockSession.getId())).thenReturn(mockedSessionUsers);
+        List<SessionUser> foundSessionUser = sessionService.getAllSessionUserForAuthorizedUser(
+                mockSessionUser.getSession().getId(), mockSessionUser.getUser().getId());
+        assertEquals(mockedSessionUsers, foundSessionUser);
+    }
+
+    @Test
+    void testGetAllSessionUserForAuthorizedUser_invalid() {
+        List<SessionUser> mockedSessionUsers = Collections.singletonList(mockSessionUser);
+
+        // when(sessionUserRepository.findById(mockSessionUser.getUser().getId())).thenReturn(Optional.of(mockSessionUser));
+        when(sessionUserRepository.findBySessionId(mockSession.getId())).thenReturn(mockedSessionUsers);
+        when(sessionService.getAllSessionUser(mockSession.getId())).thenReturn(mockedSessionUsers);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.getAllSessionUserForAuthorizedUser(mockSessionUser.getSession().getId(), 123L);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Session user not found"));
+    }
+
+    @Test
+    void testInitializeGameData_valid() {
+
+        GooglePanoramaCandidate mockCandidate = mock(GooglePanoramaCandidate.class);
+        when(mockCandidate.panoId()).thenReturn("panoId123");
+        when(mockCandidate.latitude()).thenReturn(40.7128);
+        when(mockCandidate.longitude()).thenReturn(-74.0060);
+
+        when(googlePanoramaService.fetchPanoramaCandidate()).thenReturn(mockCandidate);
+
+        sessionService.initializeGameDate(mockSession);
+
+        verify(gameDataRepository, times(3)).save(any(Game_data.class));
+        verify(googlePanoramaService, times(3)).fetchPanoramaCandidate();
+        verify(gameDataRepository).flush();
+    }
+
+    @Test
+    void testCheckIfUserIsSessionOwner_userIsOwner() {
+        mockSessionUser.setUserRole(UserSessionRole.OWNER);
+        when(sessionUserRepository.findByUserIdAndSessionId(mockSessionUser.getUser().getId(),
+                mockSessionUser.getSession().getId()))
+                .thenReturn(Optional.of(mockSessionUser));
+
+        boolean result = sessionService.checkIfUserIsSessionOwner(mockSessionUser.getUser().getId(),
+                mockSessionUser.getSession().getIdAsString());
+
+        assertTrue(result);
+    }
+
+    @Test
+    void testCheckIfUserIsSessionOwner_userIsNotOwner() {
+        mockSessionUser.setUserRole(UserSessionRole.PLAYER);
+        when(sessionUserRepository.findByUserIdAndSessionId(mockSessionUser.getUser().getId(),
+                mockSessionUser.getSession().getId()))
+                .thenReturn(Optional.of(mockSessionUser));
+
+        boolean result = sessionService.checkIfUserIsSessionOwner(mockSessionUser.getUser().getId(),
+                mockSessionUser.getSession().getIdAsString());
+
+        assertFalse(result);
+    }
+
+    @Test
+    void testCheckIfUserIsSessionOwner_sessionUserNotFound() {
+        UUID sessionUuid = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
+        when(sessionUserRepository.findByUserIdAndSessionId(99999L, sessionUuid))
+                .thenReturn(Optional.empty());
+
+        boolean result = sessionService.checkIfUserIsSessionOwner(99999L, sessionUuid.toString());
+
+        assertFalse(result);
     }
 
     @Test
