@@ -54,6 +54,39 @@ public class UserServiceTest {
 	}
 
 	@Test
+	public void getAuthenticatedUser_tokenNull(){
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getAuthenticatedUser(null));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void getAuthenticatedTargetUser_WrongBio(){
+		User newUser = new User();
+		newUser.setId(2L);
+		newUser.setToken("Token2");
+		Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(newUser));
+		Mockito.when(userRepository.findByToken("Token")).thenReturn(testUser);
+		Mockito.when(userService.getAuthenticatedUser("Token")).thenReturn(testUser);
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getAuthorizedTargetUser(2L, "Token"));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void getAuthenticatedTargetUser_targetUserNotFound(){
+		Mockito.when(userRepository.findById(2L)).thenReturn(Optional.empty());
+		Mockito.when(userRepository.findByToken("Token")).thenReturn(testUser);
+		Mockito.when(userService.getAuthenticatedUser("Token")).thenReturn(testUser);
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getAuthorizedTargetUser(2L, "Token"));
+
+		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+	}
+
+	@Test
 	public void createUser_validInputs_success() {
 		// given
 		String rawPassword = "password123";
@@ -75,7 +108,7 @@ public class UserServiceTest {
 	@Test
 	public void createUser_blankUsername_throwsException() {
 		// given
-		testUser.setUsername(" ");
+		testUser.setUsername("                    ");
 
 		// when
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
@@ -89,6 +122,14 @@ public class UserServiceTest {
 	public void createUser_shortPassword_throwsException() {
 		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
 				() -> userService.createUser(testUser, "short"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}	
+
+	@Test
+	public void createUser_nullPassword_throwsException() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, null));
 
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
@@ -106,6 +147,14 @@ public class UserServiceTest {
 		assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
 	}
 
+	@Test
+	public void createUser_bioTooLong_throwsException(){
+		testUser.setBio("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat mass");
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, "password123"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
 	@Test
 	public void createUser_nullBio_defaultsToEmptyString() {
 		testUser.setBio(null);
@@ -141,6 +190,14 @@ public class UserServiceTest {
 
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 	}
+	
+	@Test
+	public void loginUser_noPassword_throwsUnauthorized() {
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.loginUser("testUsername", ""));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
 
 	@Test
 	public void logoutUser_validToken_success() {
@@ -160,6 +217,22 @@ public class UserServiceTest {
 		assertNotEquals(oldToken, testUser.getToken());
 	}
 
+	@Test
+	public void logoutUsers_nullToken(){
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.logoutUser(null));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void logoutUsers_UserNotFound(){
+		Mockito.when(userRepository.findByToken("token")).thenReturn(null);
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.logoutUser("token"));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
 	@Test
 	public void updateUser_bioOnly_success() {
 		// given
@@ -198,6 +271,36 @@ public class UserServiceTest {
 		assertEquals(UserStatus.OFFLINE, testUser.getStatus());
 		assertNotEquals(oldToken, testUser.getToken());
 		assertTrue(BCrypt.checkpw("newPassword123", testUser.getPasswordHash()));
+	}
+
+	@Test
+	public void updateUser_passwordEmpty(){
+		String oldToken = "valid-token";
+		testUser.setStatus(UserStatus.ONLINE);
+		testUser.setToken(oldToken);
+		testUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+			() -> userService.updateUser(1L, oldToken, null, ""));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
+	public void updateUser_passwordTooShort(){
+		String oldToken = "valid-token";
+		testUser.setStatus(UserStatus.ONLINE);
+		testUser.setToken(oldToken);
+		testUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+			() -> userService.updateUser(1L, oldToken, null, "short"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
 	@Test
@@ -247,5 +350,42 @@ public class UserServiceTest {
 
 		// then
 		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+
+	@Test
+	public void getUsers_returnsList(){
+		Mockito.when(userRepository.findAll()).thenReturn(null);
+		assertEquals(null, userService.getUsers());
+
+	}
+
+	@Test
+	public void gitUserById_ExceptionNotFound(){
+		Mockito.when(userRepository.findById(0L)).thenReturn(Optional.empty());
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.getUserById(0L));
+
+		assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+	}
+
+	@Test
+	public void extractBearerToken_null(){
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.extractBearerToken(null));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}	
+	
+	@Test
+	public void extractBearerToken_empty(){
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.extractBearerToken("Bearer    "));
+
+		assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+	}
+	@Test
+	public void extractBearerToken_valid(){
+		assertEquals("aaa", userService.extractBearerToken("Bearer aaa"));
 	}
 }
