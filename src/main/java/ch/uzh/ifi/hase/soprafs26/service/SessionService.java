@@ -185,9 +185,13 @@ public class SessionService {
     }
 
     public Session getSessionWithId(String sessionId) {
-        UUID sessionUuid = parseSessionId(sessionId);
-        Session session = sessionRepository.findById(sessionUuid);
-        return session;
+        try {
+            UUID sessionUuid = parseSessionId(sessionId);
+            Session session = sessionRepository.findById(sessionUuid);
+            return session;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
+        }
     }
 
     public int increaseSessionRoundNumber(Session session, int submittedRoundNumber, int totalRoundNumbers) {
@@ -206,7 +210,7 @@ public class SessionService {
         if (session == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session not found");
         }
-        if (session.getRoundNumber() == null || session.getRoundNumber() != submittedRoundNumber) {
+        if (session.getRoundNumber() != submittedRoundNumber) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session round is out of sync");
         }
         if (submittedRoundNumber < 1 || submittedRoundNumber > GAME_TOTAL_ROUNDS) {
