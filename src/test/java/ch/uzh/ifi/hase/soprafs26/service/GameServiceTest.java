@@ -6,6 +6,7 @@ import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
+import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
@@ -53,6 +54,71 @@ public class GameServiceTest {
 
 		assertEquals(actualgameDataOut.getSessionId(), gameDataOut.getSessionId());
 		assertEquals(actualgameDataOut.getRoundNumber(), gameDataOut.getRoundNumber());
+	}
+	 
+	@Test
+	public void getSessionRoundDataForUser_firstRound() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		User user = new User();
+		user.setId(9L);
+
+		Session session = new Session();
+		session.setId(sessionId);
+
+		SessionUser sessionUser = new SessionUser();
+		sessionUser.setUser(user);
+		sessionUser.setSession(session);
+		sessionUser.setScore(0L);
+		sessionUser.setUserRole(UserSessionRole.OWNER);
+
+		Game_data gameData = new Game_data();
+		gameData.setRoundNumber(1);
+		gameData.setSessionId(sessionId.toString());
+
+
+		when(sessionUserRepository.findByUserIdAndSessionId(user.getId(), session.getId())).thenReturn(Optional.of(sessionUser));
+		when(sessionRepository.findById(session.getId())).thenReturn(session);
+		when(gameDataRepository.findBySessionIdAndRoundNumber(session.getId().toString(), 1)).thenReturn(gameData);
+		Game_data gameDataReturn = gameService.getSessionRoundDataForUser(user.getId(), session.getId().toString(), 0);
+		assertEquals(1, gameDataReturn.getRoundNumber());
+		verify(sessionRepository).save(session);
+
+
+	}
+
+	@Test
+	public void getSessionRoundDataForUser_DataNotFound() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		User user = new User();
+		user.setId(9L);
+
+		Session session = new Session();
+		session.setId(sessionId);
+
+		SessionUser sessionUser = new SessionUser();
+		sessionUser.setUser(user);
+		sessionUser.setSession(session);
+		sessionUser.setScore(0L);
+		sessionUser.setUserRole(UserSessionRole.OWNER);
+
+
+		when(sessionUserRepository.findByUserIdAndSessionId(user.getId(), session.getId())).thenReturn(Optional.of(sessionUser));
+		when(sessionRepository.findById(session.getId())).thenReturn(session);
+		when(gameDataRepository.findBySessionIdAndRoundNumber(session.getId().toString(), 1)).thenReturn(null);
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> gameService.getSessionRoundDataForUser(user.getId(), session.getId().toString(), 0));
+		assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+
 	}
 
 	@Test
@@ -153,5 +219,59 @@ public class GameServiceTest {
 		when(sessionRepository.findById(sessionId)).thenReturn(session);
 
 		assertEquals(3, gameService.validateSessionGameGuess(sessionId.toString(), 2));
+	}
+
+	@Test
+	public void validateSessionGameGuess_sessionNotFound() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("55555555-5555-5555-5555-555555555555");
+		Session session = new Session();
+		session.setId(sessionId);
+		session.setRoundNumber(2);
+		when(sessionRepository.findById(sessionId)).thenReturn(null);
+
+				ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> gameService.validateSessionGameGuess(sessionId.toString(), 2));
+		assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+	}
+
+	@Test
+	public void validateSessionGameGuess_sessionOutOfSync() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("55555555-5555-5555-5555-555555555555");
+		Session session = new Session();
+		session.setId(sessionId);
+		session.setRoundNumber(2);
+		when(sessionRepository.findById(sessionId)).thenReturn(session);
+
+				ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> gameService.validateSessionGameGuess(sessionId.toString(), 1));
+		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+	}
+
+	@Test
+	public void validateSessionGameGuess_RoundNotValide() {
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("55555555-5555-5555-5555-555555555555");
+		Session session = new Session();
+		session.setId(sessionId);
+		session.setRoundNumber(5);
+		when(sessionRepository.findById(sessionId)).thenReturn(session);
+
+				ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> gameService.validateSessionGameGuess(sessionId.toString(), 5));
+		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
 	}
 }
