@@ -7,6 +7,8 @@ public class UserAnswerPutDTO {
 	private double distance;
 	private int scoreRound;
 	private long scoreOverall;
+	private double guessLatitude;
+	private double guessLongitude;
 
 	public double getLatitude() {
 		return latitude;
@@ -46,5 +48,21 @@ public class UserAnswerPutDTO {
 
 	public void setScoreOverall(long scoreOverall) {
 		this.scoreOverall = scoreOverall;
+	}
+
+	public double getGuessLatitude() {
+		return guessLatitude;
+	}
+
+	public void setGuessLatitude(double guessLatitude) {
+		this.guessLatitude = guessLatitude;
+	}
+
+	public double getGuessLongitude() {
+		return guessLongitude;
+	}
+
+	public void setGuessLongitude(double guessLongitude) {
+		this.guessLongitude = guessLongitude;
 	}
 }

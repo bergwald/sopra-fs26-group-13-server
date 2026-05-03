@@ -91,6 +91,6 @@ public interface DTOMapper {
 	@Mapping(source = "scoreRound", target = "scoreRound")
 	@Mapping(source = "scoreOverall", target = "scoreOverall")
 	UserAnswerPutDTO convertEntityToUserAnswerPutDTO(Game_data gameData, double distance, int scoreRound,
-			long scoreOverall);
+			long scoreOverall, double guessLatitude, double guessLongitude);
 
 }
