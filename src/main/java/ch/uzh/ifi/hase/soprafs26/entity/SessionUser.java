@@ -30,6 +30,12 @@ public class SessionUser implements Serializable {
     @Column(nullable = false)
     private UserSessionRole userRole = UserSessionRole.OWNER;
 
+    @Column
+    private double guessLongitude = -1;
+
+    @Column
+    private double guessLatitude = -1;
+
     public Long getId() {
         return this.id;
     }
@@ -68,5 +74,21 @@ public class SessionUser implements Serializable {
 
     public void setUserRole(UserSessionRole userRole) {
         this.userRole = userRole;
+    }
+    
+    public double getGuessLatitude() {
+        return this.guessLatitude;
+    }
+
+    public void setGuessLatitude(double guessLatitude) {
+        this.guessLatitude = guessLatitude;
+    }
+
+    public double getGuessLongitude() {
+        return this.guessLongitude;
+    }
+
+    public void setGuessLongitude(double guessLongitude) {
+        this.guessLongitude = guessLongitude;
     }
 }

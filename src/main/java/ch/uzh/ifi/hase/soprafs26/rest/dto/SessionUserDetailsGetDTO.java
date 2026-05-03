@@ -13,6 +13,8 @@ public class SessionUserDetailsGetDTO {
     private Long score;
     private UserSessionRole userRole;
     private LocalDateTime roundStartedDateTime;
+    private double guessLatitude;
+    private double guessLongitude;
 
     public Long getId() {
         return this.id;
@@ -68,6 +70,22 @@ public class SessionUserDetailsGetDTO {
 
     public void setRoundStartedDateTime(LocalDateTime roundStartedDateTime) {
         this.roundStartedDateTime = roundStartedDateTime;
+    }
+
+    public double getGuessLatitude() {
+        return this.guessLatitude;
+    }
+
+    public void setGuessLatitude(double guessLatitude) {
+        this.guessLatitude = guessLatitude;
+    }
+
+    public double getGuessLongitude() {
+        return this.guessLongitude;
+    }
+
+    public void setGuessLongitude(double guessLongitude) {
+        this.guessLongitude = guessLongitude;
     }
 
 }
