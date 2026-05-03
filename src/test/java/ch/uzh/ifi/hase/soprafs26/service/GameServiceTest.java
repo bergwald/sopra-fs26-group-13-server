@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 public class GameServiceTest {
 
@@ -191,6 +192,24 @@ public class GameServiceTest {
 	}
 
 	@Test
+	public void saveCoordinatesOfUser_success(){
+		gameDataRepository = mock(GameDataRepository.class);
+		sessionUserRepository = mock(SessionUserRepository.class);
+		sessionRepository = mock(SessionRepository.class);
+		gameService = new GameService(gameDataRepository, sessionUserRepository, sessionRepository);
+
+		UUID sessionId = UUID.fromString("33333333-3333-3333-3333-333333333333");
+		SessionUser sessionUser = new SessionUser();
+		sessionUser.setGuessLatitude(49);
+		sessionUser.setGuessLongitude(89);
+		when(sessionUserRepository.findByUserIdAndSessionId(3L, sessionId))
+				.thenReturn(Optional.of(sessionUser));
+		gameService.saveCoordinates(3L, sessionId.toString(), 49, 89);
+		verify(sessionUserRepository).saveAndFlush(sessionUser);
+
+	}
+
+	@Test
 	public void getSessionRoundDataForUser_requiresMembership() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
@@ -274,4 +293,5 @@ public class GameServiceTest {
 				() -> gameService.validateSessionGameGuess(sessionId.toString(), 5));
 		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
 	}
+
 }
