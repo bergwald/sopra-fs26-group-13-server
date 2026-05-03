@@ -66,6 +66,15 @@ public class GameService {
         return sessionUser.getScore();
     }
 
+
+    public void saveCoordinates(Long userId, String sessionId, double guessLatitude, double guessLongitude) {
+        UUID sessionUuid = parseSessionId(sessionId);
+        SessionUser sessionUser = requireSessionMembership(userId, sessionUuid);
+        sessionUser.setGuessLatitude(guessLatitude);
+        sessionUser.setGuessLongitude(guessLongitude);
+        sessionUserRepository.save(sessionUser);
+    }
+
     public int validateSessionGameGuess(String sessionId, int submittedRoundNumber) {
         UUID sessionUuid = parseSessionId(sessionId);
         Session session = sessionRepository.findById(sessionUuid);
