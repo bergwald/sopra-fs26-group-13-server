@@ -178,6 +178,17 @@ public class SessionServiceTest {
     }
 
     @Test
+    void testResetCoordinatesOfSessionUsers_success() {
+        when(sessionUserRepository.findBySessionId(any(UUID.class)))
+                .thenReturn(Collections.singletonList(mockSessionUser));
+
+        sessionService.resetCoordinatesOfSessionUsers(mockSession.getId());
+        assertEquals(-1, mockSessionUser.getGuessLatitude());
+        assertEquals(-1, mockSessionUser.getGuessLongitude());
+
+    }
+
+    @Test
     void testValidateSessionExpiryDate_valid() {
         Session returnedSession = sessionService.validateSessionExpiryDate(mockSession);
         assertEquals(returnedSession, mockSession);
