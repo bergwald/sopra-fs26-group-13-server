@@ -17,7 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
@@ -60,7 +59,6 @@ public class UserServiceIntegrationTest {
 		assertNotNull(createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw("password123", createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
-		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 		assertNotNull(createdUser.getCreationDate());
 	}
 
@@ -79,7 +77,6 @@ public class UserServiceIntegrationTest {
 		assertEquals(createdUser.getId(), foundUser.getId());
 		assertEquals(createdUser.getUsername(), foundUser.getUsername());
 		assertEquals(createdUser.getBio(), foundUser.getBio());
-		assertEquals(createdUser.getStatus(), foundUser.getStatus());
 		assertEquals(createdUser.getCreationDate(), foundUser.getCreationDate());
 	}
 
@@ -112,7 +109,6 @@ public class UserServiceIntegrationTest {
 
 		// then
 		assertEquals("testUsername", loggedInUser.getUsername());
-		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
 		assertNotNull(loggedInUser.getToken());
 	}
 
@@ -130,7 +126,6 @@ public class UserServiceIntegrationTest {
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
-		assertEquals(UserStatus.OFFLINE, updatedUser.getStatus());
 		assertNotEquals(oldToken, updatedUser.getToken());
 		assertNull(userRepository.findByToken(oldToken));
 	}
@@ -149,7 +144,6 @@ public class UserServiceIntegrationTest {
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
-		assertEquals(UserStatus.OFFLINE, updatedUser.getStatus());
 		assertNotEquals(oldToken, updatedUser.getToken());
 		assertTrue(BCrypt.checkpw("newPassword123", updatedUser.getPasswordHash()));
 	}
@@ -168,7 +162,6 @@ public class UserServiceIntegrationTest {
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
 		assertEquals("Updated bio", updatedUser.getBio());
-		assertEquals(UserStatus.ONLINE, updatedUser.getStatus());
 	}
 
 	@Test

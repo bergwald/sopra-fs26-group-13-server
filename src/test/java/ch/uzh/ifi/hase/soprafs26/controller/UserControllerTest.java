@@ -28,7 +28,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
@@ -58,7 +57,6 @@ public class UserControllerTest {
 		user.setId(1L);
 		user.setUsername("testUsername");
 		user.setBio("Short bio");
-		user.setStatus(UserStatus.ONLINE);
 		user.setToken("valid-token");
 		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 		return user;
@@ -81,8 +79,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$", hasSize(1)))
 				.andExpect(jsonPath("$[0].id", is(1)))
 				.andExpect(jsonPath("$[0].username", is("testUsername")))
-				.andExpect(jsonPath("$[0].bio", is("Short bio")))
-				.andExpect(jsonPath("$[0].status", is(UserStatus.ONLINE.toString())));
+				.andExpect(jsonPath("$[0].bio", is("Short bio")));
 	}
 
 	/**
@@ -109,7 +106,6 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
-				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
 				.andExpect(jsonPath("$.token", is("valid-token")));
 	}
 
@@ -133,7 +129,6 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
-				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
 	}
 
@@ -171,7 +166,6 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
-				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
 				.andExpect(jsonPath("$.token", is("valid-token")));
 	}
 

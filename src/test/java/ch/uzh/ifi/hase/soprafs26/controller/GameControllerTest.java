@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
 import ch.uzh.ifi.hase.soprafs26.service.GuessEvaluationService;
@@ -72,7 +71,6 @@ public class GameControllerTest {
                 user.setBio("Some bio");
                 user.setPasswordHash("123213123");
                 user.setToken("1");
-                user.setStatus(UserStatus.ONLINE);
                 return user;
     }
 

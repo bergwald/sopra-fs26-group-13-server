@@ -19,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
@@ -43,7 +42,6 @@ public class UserServiceTest {
 		testUser.setUsername("testUsername");
 		testUser.setBio("Short bio");
 		testUser.setToken("valid-token");
-		testUser.setStatus(UserStatus.OFFLINE);
 		testUser.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 
 		// when -> any object being saved in the userRepository returns the dummy
@@ -102,7 +100,6 @@ public class UserServiceTest {
 		assertNotNull(createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
-		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
 	}
 
 	@Test
@@ -175,9 +172,7 @@ public class UserServiceTest {
 		User loggedInUser = userService.loginUser("testUsername", rawPassword);
 
 		// then
-		Mockito.verify(userRepository).save(testUser);
-		Mockito.verify(userRepository).flush();
-		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
+		assertEquals(testUser, loggedInUser);
 	}
 
 	@Test
@@ -203,7 +198,6 @@ public class UserServiceTest {
 	public void logoutUser_validToken_success() {
 		// given
 		String oldToken = "valid-token";
-		testUser.setStatus(UserStatus.ONLINE);
 		testUser.setToken(oldToken);
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
 
@@ -213,7 +207,6 @@ public class UserServiceTest {
 		// then
 		Mockito.verify(userRepository).save(testUser);
 		Mockito.verify(userRepository).flush();
-		assertEquals(UserStatus.OFFLINE, testUser.getStatus());
 		assertNotEquals(oldToken, testUser.getToken());
 	}
 
@@ -238,7 +231,6 @@ public class UserServiceTest {
 		// given
 		String oldToken = "valid-token";
 		String oldPasswordHash = BCrypt.hashpw("oldPassword123", BCrypt.gensalt());
-		testUser.setStatus(UserStatus.ONLINE);
 		testUser.setToken(oldToken);
 		testUser.setPasswordHash(oldPasswordHash);
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
@@ -249,7 +241,6 @@ public class UserServiceTest {
 
 		// then
 		assertEquals("Updated bio", testUser.getBio());
-		assertEquals(UserStatus.ONLINE, testUser.getStatus());
 		assertEquals(oldToken, testUser.getToken());
 		assertEquals(oldPasswordHash, testUser.getPasswordHash());
 	}
@@ -258,7 +249,6 @@ public class UserServiceTest {
 	public void updateUser_passwordOnly_success() {
 		// given
 		String oldToken = "valid-token";
-		testUser.setStatus(UserStatus.ONLINE);
 		testUser.setToken(oldToken);
 		testUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
@@ -268,7 +258,6 @@ public class UserServiceTest {
 		userService.updateUser(1L, oldToken, null, "newPassword123");
 
 		// then
-		assertEquals(UserStatus.OFFLINE, testUser.getStatus());
 		assertNotEquals(oldToken, testUser.getToken());
 		assertTrue(BCrypt.checkpw("newPassword123", testUser.getPasswordHash()));
 	}
@@ -276,7 +265,6 @@ public class UserServiceTest {
 	@Test
 	public void updateUser_passwordEmpty(){
 		String oldToken = "valid-token";
-		testUser.setStatus(UserStatus.ONLINE);
 		testUser.setToken(oldToken);
 		testUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
@@ -291,7 +279,6 @@ public class UserServiceTest {
 	@Test
 	public void updateUser_passwordTooShort(){
 		String oldToken = "valid-token";
-		testUser.setStatus(UserStatus.ONLINE);
 		testUser.setToken(oldToken);
 		testUser.setPasswordHash(BCrypt.hashpw("oldPassword123", BCrypt.gensalt()));
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);

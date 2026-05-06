@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 
 @DataJpaTest
@@ -26,7 +25,6 @@ public class UserRepositoryIntegrationTest {
 		user.setUsername("firstname@lastname");
 		user.setBio("Short bio");
 		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
-		user.setStatus(UserStatus.OFFLINE);
 		user.setToken("1");
 
 		entityManager.persist(user);
@@ -38,7 +36,6 @@ public class UserRepositoryIntegrationTest {
 		assertEquals(found.getUsername(), user.getUsername());
 		assertEquals(found.getBio(), user.getBio());
 		assertEquals(found.getToken(), user.getToken());
-		assertEquals(found.getStatus(), user.getStatus());
 	}
 
 	@Test
@@ -47,7 +44,6 @@ public class UserRepositoryIntegrationTest {
 		user.setUsername("firstname@lastname");
 		user.setBio("Short bio");
 		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
-		user.setStatus(UserStatus.OFFLINE);
 		user.setToken("token-123");
 
 		entityManager.persist(user);
@@ -59,6 +55,5 @@ public class UserRepositoryIntegrationTest {
 		assertEquals(found.getUsername(), user.getUsername());
 		assertEquals(found.getBio(), user.getBio());
 		assertEquals(found.getToken(), user.getToken());
-		assertEquals(found.getStatus(), user.getStatus());
 	}
 }

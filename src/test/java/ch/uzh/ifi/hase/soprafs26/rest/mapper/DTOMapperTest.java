@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
@@ -51,7 +50,6 @@ public class DTOMapperTest {
 		user.setId(1L);
 		user.setUsername("firstname@lastname");
 		user.setBio("Hello from bio");
-		user.setStatus(UserStatus.OFFLINE);
 		user.setToken("1");
 
 		// MAP -> Create UserGetDTO
@@ -61,7 +59,6 @@ public class DTOMapperTest {
 		assertEquals(user.getId(), userGetDTO.getId());
 		assertEquals(user.getUsername(), userGetDTO.getUsername());
 		assertEquals(user.getBio(), userGetDTO.getBio());
-		assertEquals(user.getStatus(), userGetDTO.getStatus());
 	}
 
 	@Test
@@ -70,7 +67,6 @@ public class DTOMapperTest {
 		user.setId(1L);
 		user.setUsername("firstname@lastname");
 		user.setBio("Hello from bio");
-		user.setStatus(UserStatus.ONLINE);
 		user.setToken("token-123");
 
 		UserRegisterResponseDTO registerResponseDTO = DTOMapper.INSTANCE.convertEntityToUserRegisterResponseDTO(user);
@@ -78,7 +74,6 @@ public class DTOMapperTest {
 		assertEquals(user.getId(), registerResponseDTO.getId());
 		assertEquals(user.getUsername(), registerResponseDTO.getUsername());
 		assertEquals(user.getBio(), registerResponseDTO.getBio());
-		assertEquals(user.getStatus(), registerResponseDTO.getStatus());
 		assertEquals(user.getToken(), registerResponseDTO.getToken());
 	}
 
@@ -88,7 +83,6 @@ public class DTOMapperTest {
 		user.setId(1L);
 		user.setUsername("firstname@lastname");
 		user.setBio("Hello from bio");
-		user.setStatus(UserStatus.ONLINE);
 		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 
 		UserProfileGetDTO userProfileGetDTO = DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
@@ -96,7 +90,6 @@ public class DTOMapperTest {
 		assertEquals(user.getId(), userProfileGetDTO.getId());
 		assertEquals(user.getUsername(), userProfileGetDTO.getUsername());
 		assertEquals(user.getBio(), userProfileGetDTO.getBio());
-		assertEquals(user.getStatus(), userProfileGetDTO.getStatus());
 		assertEquals(user.getCreationDate(), userProfileGetDTO.getCreationDate());
 	}
 
