@@ -39,6 +39,9 @@ public class User implements Serializable {
 	@Column(nullable = false, unique = true)
 	private String token;
 
+	@Column(nullable = false)
+	private Integer mascotId = 1;
+
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)
 	private Instant creationDate;
@@ -81,6 +84,14 @@ public class User implements Serializable {
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+	public Integer getMascotId() {
+		return mascotId;
+	}
+
+	public void setMascotId(Integer mascotId) {
+		this.mascotId = mascotId;
 	}
 
 	public Instant getCreationDate() {
