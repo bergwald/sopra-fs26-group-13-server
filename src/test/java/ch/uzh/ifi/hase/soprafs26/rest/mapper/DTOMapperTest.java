@@ -171,7 +171,7 @@ public class DTOMapperTest {
 		gameData.setLatitude(46.95d);
 		gameData.setLongitude(7.44d);
 
-		UserAnswerPutDTO answer = DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, 12.5d, 88, 200L);
+		UserAnswerPutDTO answer = DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, 12.5d, 88, 200L, 46.95d, 7.44d);
 
 		assertEquals(gameData.getLatitude(), answer.getLatitude(), 1e-6);
 		assertEquals(gameData.getLongitude(), answer.getLongitude(), 1e-6);

@@ -66,6 +66,15 @@ public class GameService {
         return sessionUser.getScore();
     }
 
+    public void saveCoordinates(Long userId, String sessionId, double guessLatitude, double guessLongitude) {
+        UUID sessionUuid = parseSessionId(sessionId);
+        SessionUser sessionUser = requireSessionMembership(userId, sessionUuid);
+        sessionUser.setGuessLatitude(guessLatitude);
+        sessionUser.setGuessLongitude(guessLongitude);
+        sessionUserRepository.saveAndFlush(sessionUser);
+
+    }
+
     public int validateSessionGameGuess(String sessionId, int submittedRoundNumber) {
         UUID sessionUuid = parseSessionId(sessionId);
         Session session = sessionRepository.findById(sessionUuid);
@@ -82,15 +91,18 @@ public class GameService {
         return submittedRoundNumber + 1;
     }
 
-/*  NOT IN USE - Written by someone else, therefore not yet deleted
-    public int increaseSessionRoundNumber(Session session, int submittedRoundNumber, int totalRoundNumbers) {
-        int nextRoundNumber = submittedRoundNumber < totalRoundNumbers
-                ? submittedRoundNumber + 1
-                : totalRoundNumbers + 1;
-        session.setRoundNumber(nextRoundNumber);
-        sessionRepository.save(session);
-        return nextRoundNumber;
-    }*/
+    /*
+     * NOT IN USE - Written by someone else, therefore not yet deleted
+     * public int increaseSessionRoundNumber(Session session, int
+     * submittedRoundNumber, int totalRoundNumbers) {
+     * int nextRoundNumber = submittedRoundNumber < totalRoundNumbers
+     * ? submittedRoundNumber + 1
+     * : totalRoundNumbers + 1;
+     * session.setRoundNumber(nextRoundNumber);
+     * sessionRepository.save(session);
+     * return nextRoundNumber;
+     * }
+     */
 
     private SessionUser requireSessionMembership(Long userId, UUID sessionUuid) {
         return sessionUserRepository.findByUserIdAndSessionId(userId, sessionUuid)
