@@ -65,6 +65,10 @@ public class UserService {
 		checkIfUsernameExists(newUser.getUsername());
 		newUser.setPasswordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt()));
 		newUser.setToken(UUID.randomUUID().toString());
+		if (newUser.getMascotId() == null) {
+			newUser.setMascotId(1);
+		}
+		validateMascotId(newUser.getMascotId());
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -102,12 +106,14 @@ public class UserService {
 		userRepository.flush();
 	}
 
-	public void updateUser(Long targetUserId, String requesterToken, String newBio, String newPassword) {
+	public void updateUser(Long targetUserId, String requesterToken, String newBio, String newPassword,
+			Integer newMascotId) {
 		User targetUser = getAuthorizedTargetUser(targetUserId, requesterToken);
 
 		boolean updateBio = newBio != null;
 		boolean updatePassword = newPassword != null;
-		if (!updateBio && !updatePassword) {
+		boolean updateMascot = newMascotId != null;
+		if (!updateBio && !updatePassword && !updateMascot) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					"At least one updatable field must be provided.");
 		}
@@ -122,6 +128,10 @@ public class UserService {
 			validateNewPassword(newPassword);
 		}
 
+		if (updateMascot) {
+			validateMascotId(newMascotId);
+		}
+
 		if (updateBio) {
 			targetUser.setBio(normalizedBio);
 		}
@@ -129,6 +139,10 @@ public class UserService {
 		if (updatePassword) {
 			targetUser.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
 			targetUser.setToken(UUID.randomUUID().toString());
+		}
+
+		if (updateMascot) {
+			targetUser.setMascotId(newMascotId);
 		}
 
 		userRepository.save(targetUser);
@@ -202,6 +216,12 @@ public class UserService {
 
 		if (newPassword.length() < MIN_PASSWORD_LENGTH) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
+		}
+	}
+
+	private void validateMascotId(Integer mascotId) {
+		if (mascotId == null || mascotId <= 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The mascot id must be a positive integer.");
 		}
 	}
 	

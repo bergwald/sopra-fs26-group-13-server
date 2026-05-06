@@ -5,6 +5,7 @@ public class UserRegisterResponseDTO {
 	private Long id;
 	private String username;
 	private String bio;
+	private Integer mascot_id;
 	private String token;
 
 	public Long getId() {
@@ -29,6 +30,14 @@ public class UserRegisterResponseDTO {
 
 	public void setBio(String bio) {
 		this.bio = bio;
+	}
+
+	public Integer getMascot_id() {
+		return mascot_id;
+	}
+
+	public void setMascot_id(Integer mascot_id) {
+		this.mascot_id = mascot_id;
 	}
 
 	public String getToken() {

@@ -88,6 +88,7 @@ public class UserController {
 			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 			@RequestBody UserUpdatePutDTO userUpdatePutDTO) {
 		String token = this.userService.extractBearerToken(authorizationHeader);
-		userService.updateUser(userId, token, userUpdatePutDTO.getBio(), userUpdatePutDTO.getNewPassword());
+		userService.updateUser(userId, token, userUpdatePutDTO.getBio(), userUpdatePutDTO.getNewPassword(),
+				userUpdatePutDTO.getMascot_id());
 	}
 }

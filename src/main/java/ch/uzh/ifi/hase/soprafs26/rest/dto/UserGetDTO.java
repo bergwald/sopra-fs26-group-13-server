@@ -5,6 +5,7 @@ public class UserGetDTO {
 	private Long id;
 	private String username;
 	private String bio;
+	private Integer mascot_id;
 
 	public Long getId() {
 		return id;
@@ -30,4 +31,11 @@ public class UserGetDTO {
 		this.bio = bio;
 	}
 
+	public Integer getMascot_id() {
+		return mascot_id;
+	}
+
+	public void setMascot_id(Integer mascot_id) {
+		this.mascot_id = mascot_id;
+	}
 }
