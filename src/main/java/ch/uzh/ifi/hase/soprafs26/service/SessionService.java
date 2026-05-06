@@ -243,7 +243,7 @@ public class SessionService {
                 deleteSession(sessionUser.get().getSession());
             } else {
                 this.sessionUserRepository.delete(sessionUser.get());
-                this.sessionRepository.flush();
+                this.sessionUserRepository.flush();
             }
         }
     }
