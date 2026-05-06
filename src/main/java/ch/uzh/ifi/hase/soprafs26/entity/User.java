@@ -2,8 +2,6 @@ package ch.uzh.ifi.hase.soprafs26.entity;
 
 import jakarta.persistence.*;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
@@ -40,9 +38,6 @@ public class User implements Serializable {
 
 	@Column(nullable = false, unique = true)
 	private String token;
-
-	@Column(nullable = false)
-	private UserStatus status;
 
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)
@@ -86,14 +81,6 @@ public class User implements Serializable {
 
 	public void setToken(String token) {
 		this.token = token;
-	}
-
-	public UserStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(UserStatus status) {
-		this.status = status;
 	}
 
 	public Instant getCreationDate() {
