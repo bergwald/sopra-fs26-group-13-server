@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
@@ -120,32 +119,39 @@ public class UserControllerTest {
 	public void givenUserId_whenGetUser_thenReturnJsonObject() throws Exception {
 		// given
 		User user = sampleUser();
-		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
-		when(userService.getAuthenticatedUser("valid-token")).thenReturn(sampleUser());
 		given(userService.getUserById(1L)).willReturn(user);
 
 		// when/then
 		mockMvc.perform(get("/users/{userId}", 1L)
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer valid-token"))
+				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
 				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
+
+		verify(userService, never()).extractBearerToken(anyString());
+		verify(userService, never()).getAuthenticatedUser(anyString());
 	}
 
-	/** Tests GET /users/{userId} and verifies a missing Authorization header returns 401. */
+	/** Tests GET /users/{userId} and verifies a missing Authorization header still returns the public profile. */
 	@Test
-	public void givenMissingAuthorization_whenGetUser_thenReturnUnauthorized() throws Exception {
+	public void givenMissingAuthorization_whenGetUser_thenReturnJsonObject() throws Exception {
 		// given
-		when(userService.extractBearerToken(null))
-				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
+		User user = sampleUser();
+		given(userService.getUserById(1L)).willReturn(user);
 
 		// when/then
 		mockMvc.perform(get("/users/{userId}", 1L).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isUnauthorized());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is(1)))
+				.andExpect(jsonPath("$.username", is("testUsername")))
+				.andExpect(jsonPath("$.bio", is("Short bio")))
+				.andExpect(jsonPath("$.mascot_id", is(3)));
+
+		verify(userService, never()).extractBearerToken(anyString());
+		verify(userService, never()).getAuthenticatedUser(anyString());
 	}
 
 	/**
