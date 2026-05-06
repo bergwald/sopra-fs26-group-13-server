@@ -242,7 +242,8 @@ public class SessionService {
             if (sessionUser.get().getUserRole() == UserSessionRole.OWNER) {
                 deleteSession(sessionUser.get().getSession());
             } else {
-                this.sessionUserRepository.deleteById(userId);
+                this.sessionUserRepository.delete(sessionUser.get());
+                this.sessionRepository.flush();
             }
         }
     }
