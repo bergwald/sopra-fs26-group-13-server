@@ -36,7 +36,6 @@ public interface DTOMapper {
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "passwordHash", ignore = true)
 	@Mapping(target = "token", ignore = true)
-	@Mapping(target = "status", ignore = true)
 	@Mapping(target = "creationDate", ignore = true)
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
@@ -45,20 +44,17 @@ public interface DTOMapper {
 	@Mapping(source = "id", target = "id")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
-	@Mapping(source = "status", target = "status")
 	UserGetDTO convertEntityToUserGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
-	@Mapping(source = "status", target = "status")
 	@Mapping(source = "creationDate", target = "creationDate")
 	UserProfileGetDTO convertEntityToUserProfileGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
-	@Mapping(source = "status", target = "status")
 	@Mapping(source = "token", target = "token")
 	UserRegisterResponseDTO convertEntityToUserRegisterResponseDTO(User user);
 

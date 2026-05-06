@@ -1,13 +1,10 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-
 public class UserRegisterResponseDTO {
 
 	private Long id;
 	private String username;
 	private String bio;
-	private UserStatus status;
 	private String token;
 
 	public Long getId() {
@@ -32,14 +29,6 @@ public class UserRegisterResponseDTO {
 
 	public void setBio(String bio) {
 		this.bio = bio;
-	}
-
-	public UserStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(UserStatus status) {
-		this.status = status;
 	}
 
 	public String getToken() {

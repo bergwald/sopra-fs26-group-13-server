@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
@@ -66,7 +65,6 @@ public class UserService {
 		checkIfUsernameExists(newUser.getUsername());
 		newUser.setPasswordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt()));
 		newUser.setToken(UUID.randomUUID().toString());
-		newUser.setStatus(UserStatus.ONLINE);
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -86,9 +84,6 @@ public class UserService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password provided is incorrect.");
 		}
 
-		user.setStatus(UserStatus.ONLINE);
-		userRepository.save(user);
-		userRepository.flush();
 		return user;
 	}
 
@@ -102,7 +97,6 @@ public class UserService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
 		}
 
-		user.setStatus(UserStatus.OFFLINE);
 		user.setToken(UUID.randomUUID().toString());
 		userRepository.save(user);
 		userRepository.flush();
@@ -134,7 +128,6 @@ public class UserService {
 
 		if (updatePassword) {
 			targetUser.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
-			targetUser.setStatus(UserStatus.OFFLINE);
 			targetUser.setToken(UUID.randomUUID().toString());
 		}
 
