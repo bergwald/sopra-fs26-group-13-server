@@ -100,6 +100,7 @@ public class UserServiceTest {
 		assertNotNull(createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw(rawPassword, createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
+		assertEquals(1, createdUser.getMascotId());
 	}
 
 	@Test
@@ -159,6 +160,16 @@ public class UserServiceTest {
 		User createdUser = userService.createUser(testUser, "password123");
 
 		assertEquals("", createdUser.getBio());
+	}
+
+	@Test
+	public void createUser_invalidMascot_throwsException() {
+		testUser.setMascotId(0);
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.createUser(testUser, "password123"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
 	@Test
@@ -237,7 +248,7 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
 		// when
-		userService.updateUser(1L, oldToken, "  Updated bio  ", null);
+			userService.updateUser(1L, oldToken, "  Updated bio  ", null, null);
 
 		// then
 		assertEquals("Updated bio", testUser.getBio());
@@ -255,11 +266,67 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
 		// when
-		userService.updateUser(1L, oldToken, null, "newPassword123");
+			userService.updateUser(1L, oldToken, null, "newPassword123", null);
 
 		// then
 		assertNotEquals(oldToken, testUser.getToken());
 		assertTrue(BCrypt.checkpw("newPassword123", testUser.getPasswordHash()));
+	}
+
+	@Test
+	public void updateUser_mascotOnly_success() {
+		String oldToken = "valid-token";
+		testUser.setToken(oldToken);
+		testUser.setMascotId(1);
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		userService.updateUser(1L, oldToken, null, null, 7);
+
+		assertEquals(7, testUser.getMascotId());
+		assertEquals(oldToken, testUser.getToken());
+		Mockito.verify(userRepository).save(testUser);
+		Mockito.verify(userRepository).flush();
+	}
+
+	@Test
+	public void updateUser_bioAndMascot_success() {
+		String oldToken = "valid-token";
+		testUser.setToken(oldToken);
+		testUser.setMascotId(1);
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		userService.updateUser(1L, oldToken, "  Updated bio  ", null, 4);
+
+		assertEquals("Updated bio", testUser.getBio());
+		assertEquals(4, testUser.getMascotId());
+	}
+
+	@Test
+	public void updateUser_zeroMascot_throwsBadRequest() {
+		String oldToken = "valid-token";
+		testUser.setToken(oldToken);
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.updateUser(1L, oldToken, null, null, 0));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+	}
+
+	@Test
+	public void updateUser_negativeMascot_throwsBadRequest() {
+		String oldToken = "valid-token";
+		testUser.setToken(oldToken);
+		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.updateUser(1L, oldToken, null, null, -1));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
 	@Test
@@ -270,8 +337,8 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-			() -> userService.updateUser(1L, oldToken, null, ""));
+			ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.updateUser(1L, oldToken, null, "", null));
 
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
@@ -284,8 +351,8 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findByToken(oldToken)).thenReturn(testUser);
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-			() -> userService.updateUser(1L, oldToken, null, "short"));
+			ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.updateUser(1L, oldToken, null, "short", null));
 
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
@@ -295,8 +362,8 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
 		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-				() -> userService.updateUser(1L, "valid-token", null, null));
+			ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+					() -> userService.updateUser(1L, "valid-token", null, null, null));
 
 		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}

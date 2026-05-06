@@ -59,6 +59,7 @@ public class UserServiceIntegrationTest {
 		assertNotNull(createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw("password123", createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
+		assertEquals(1, createdUser.getMascotId());
 		assertNotNull(createdUser.getCreationDate());
 	}
 
@@ -77,6 +78,7 @@ public class UserServiceIntegrationTest {
 		assertEquals(createdUser.getId(), foundUser.getId());
 		assertEquals(createdUser.getUsername(), foundUser.getUsername());
 		assertEquals(createdUser.getBio(), foundUser.getBio());
+		assertEquals(createdUser.getMascotId(), foundUser.getMascotId());
 		assertEquals(createdUser.getCreationDate(), foundUser.getCreationDate());
 	}
 
@@ -140,7 +142,7 @@ public class UserServiceIntegrationTest {
 		String oldToken = createdUser.getToken();
 
 		// when
-		userService.updateUser(createdUser.getId(), oldToken, null, "newPassword123");
+		userService.updateUser(createdUser.getId(), oldToken, null, "newPassword123", null);
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
@@ -157,11 +159,37 @@ public class UserServiceIntegrationTest {
 		User createdUser = userService.createUser(testUser, "oldPassword123");
 
 		// when
-		userService.updateUser(createdUser.getId(), createdUser.getToken(), "  Updated bio  ", null);
+		userService.updateUser(createdUser.getId(), createdUser.getToken(), "  Updated bio  ", null, null);
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
 		assertEquals("Updated bio", updatedUser.getBio());
+	}
+
+	@Test
+	public void updateUser_mascotOnly_success() {
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "oldPassword123");
+
+		userService.updateUser(createdUser.getId(), createdUser.getToken(), null, null, 7);
+
+		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
+		assertEquals(7, updatedUser.getMascotId());
+	}
+
+	@Test
+	public void updateUser_invalidMascot_throwsException() {
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "oldPassword123");
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.updateUser(createdUser.getId(), createdUser.getToken(), null, null, 0));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
 	@Test

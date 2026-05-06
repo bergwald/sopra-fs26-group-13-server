@@ -57,6 +57,7 @@ public class UserControllerTest {
 		user.setId(1L);
 		user.setUsername("testUsername");
 		user.setBio("Short bio");
+		user.setMascotId(3);
 		user.setToken("valid-token");
 		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 		return user;
@@ -79,7 +80,8 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$", hasSize(1)))
 				.andExpect(jsonPath("$[0].id", is(1)))
 				.andExpect(jsonPath("$[0].username", is("testUsername")))
-				.andExpect(jsonPath("$[0].bio", is("Short bio")));
+				.andExpect(jsonPath("$[0].bio", is("Short bio")))
+				.andExpect(jsonPath("$[0].mascot_id", is(3)));
 	}
 
 	/**
@@ -106,6 +108,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.token", is("valid-token")));
 	}
 
@@ -129,6 +132,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
 	}
 
@@ -166,6 +170,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.token", is("valid-token")));
 	}
 
@@ -240,7 +245,23 @@ public class UserControllerTest {
 				.content(controllerTestHelper.asJsonString(userUpdatePutDTO)))
 				.andExpect(status().isNoContent());
 
-		verify(userService).updateUser(1L, "valid-token", "Updated bio", null);
+		verify(userService).updateUser(1L, "valid-token", "Updated bio", null, null);
+	}
+
+	@Test
+	public void updateUser_mascotOnly_noContent() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setMascot_id(7);
+
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
+
+		mockMvc.perform(put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO)))
+				.andExpect(status().isNoContent());
+
+		verify(userService).updateUser(1L, "valid-token", null, null, 7);
 	}
 
 	/** Tests PUT /users/{userId} and verifies an invalid token returns 401. */

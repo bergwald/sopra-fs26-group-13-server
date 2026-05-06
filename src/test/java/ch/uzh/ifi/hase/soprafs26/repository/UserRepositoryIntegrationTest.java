@@ -25,6 +25,7 @@ public class UserRepositoryIntegrationTest {
 		user.setUsername("firstname@lastname");
 		user.setBio("Short bio");
 		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
+		user.setMascotId(3);
 		user.setToken("1");
 
 		entityManager.persist(user);
@@ -35,6 +36,7 @@ public class UserRepositoryIntegrationTest {
 		assertNotNull(found.getId());
 		assertEquals(found.getUsername(), user.getUsername());
 		assertEquals(found.getBio(), user.getBio());
+		assertEquals(found.getMascotId(), user.getMascotId());
 		assertEquals(found.getToken(), user.getToken());
 	}
 
@@ -44,6 +46,7 @@ public class UserRepositoryIntegrationTest {
 		user.setUsername("firstname@lastname");
 		user.setBio("Short bio");
 		user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
+		user.setMascotId(4);
 		user.setToken("token-123");
 
 		entityManager.persist(user);
@@ -54,6 +57,7 @@ public class UserRepositoryIntegrationTest {
 		assertNotNull(found.getId());
 		assertEquals(found.getUsername(), user.getUsername());
 		assertEquals(found.getBio(), user.getBio());
+		assertEquals(found.getMascotId(), user.getMascotId());
 		assertEquals(found.getToken(), user.getToken());
 	}
 }
