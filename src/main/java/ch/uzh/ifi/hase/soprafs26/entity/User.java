@@ -42,6 +42,15 @@ public class User implements Serializable {
 	@Column(nullable = false)
 	private Integer mascotId = 1;
 
+	@Column(nullable = false)
+	private Integer roundsPlayed = 0;
+
+	@Column(nullable = false)
+	private Double avgDistance = 0.0;
+
+	@Column(nullable = false)
+	private Double avgScore = 0.0;
+
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)
 	private Instant creationDate;
@@ -92,6 +101,30 @@ public class User implements Serializable {
 
 	public void setMascotId(Integer mascotId) {
 		this.mascotId = mascotId;
+	}
+
+	public Integer getRoundsPlayed() {
+		return roundsPlayed;
+	}
+
+	public void setRoundsPlayed(Integer roundsPlayed) {
+		this.roundsPlayed = roundsPlayed;
+	}
+
+	public Double getAvgDistance() {
+		return avgDistance;
+	}
+
+	public void setAvgDistance(Double avgDistance) {
+		this.avgDistance = avgDistance;
+	}
+
+	public Double getAvgScore() {
+		return avgScore;
+	}
+
+	public void setAvgScore(Double avgScore) {
+		this.avgScore = avgScore;
 	}
 
 	public Instant getCreationDate() {
