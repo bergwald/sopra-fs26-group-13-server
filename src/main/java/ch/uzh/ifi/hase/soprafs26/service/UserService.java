@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
@@ -29,6 +28,7 @@ public class UserService {
 
 	private static final int MAX_BIO_LENGTH = 280;
 	private static final int MIN_PASSWORD_LENGTH = 8;
+	private static final double NO_GUESS_DISTANCE_KM = 20000.0;
 
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -66,7 +66,10 @@ public class UserService {
 		checkIfUsernameExists(newUser.getUsername());
 		newUser.setPasswordHash(BCrypt.hashpw(rawPassword, BCrypt.gensalt()));
 		newUser.setToken(UUID.randomUUID().toString());
-		newUser.setStatus(UserStatus.ONLINE);
+		if (newUser.getMascotId() == null) {
+			newUser.setMascotId(1);
+		}
+		validateMascotId(newUser.getMascotId());
 		// saves the given entity but data is only persisted in the database once
 		// flush() is called
 		newUser = userRepository.save(newUser);
@@ -86,9 +89,6 @@ public class UserService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The username or password provided is incorrect.");
 		}
 
-		user.setStatus(UserStatus.ONLINE);
-		userRepository.save(user);
-		userRepository.flush();
 		return user;
 	}
 
@@ -102,18 +102,19 @@ public class UserService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid.");
 		}
 
-		user.setStatus(UserStatus.OFFLINE);
 		user.setToken(UUID.randomUUID().toString());
 		userRepository.save(user);
 		userRepository.flush();
 	}
 
-	public void updateUser(Long targetUserId, String requesterToken, String newBio, String newPassword) {
+	public void updateUser(Long targetUserId, String requesterToken, String newBio, String newPassword,
+			Integer newMascotId) {
 		User targetUser = getAuthorizedTargetUser(targetUserId, requesterToken);
 
 		boolean updateBio = newBio != null;
 		boolean updatePassword = newPassword != null;
-		if (!updateBio && !updatePassword) {
+		boolean updateMascot = newMascotId != null;
+		if (!updateBio && !updatePassword && !updateMascot) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					"At least one updatable field must be provided.");
 		}
@@ -128,17 +129,41 @@ public class UserService {
 			validateNewPassword(newPassword);
 		}
 
+		if (updateMascot) {
+			validateMascotId(newMascotId);
+		}
+
 		if (updateBio) {
 			targetUser.setBio(normalizedBio);
 		}
 
 		if (updatePassword) {
 			targetUser.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
-			targetUser.setStatus(UserStatus.OFFLINE);
 			targetUser.setToken(UUID.randomUUID().toString());
 		}
 
+		if (updateMascot) {
+			targetUser.setMascotId(newMascotId);
+		}
+
 		userRepository.save(targetUser);
+		userRepository.flush();
+	}
+
+	public void recordPlayedRound(Long userId, double distance, int scoreRound) {
+		User user = getUserById(userId);
+
+		int oldRoundsPlayed = user.getRoundsPlayed() != null ? user.getRoundsPlayed() : 0;
+		int newRoundsPlayed = oldRoundsPlayed + 1;
+		double statsDistance = distance < 0 ? NO_GUESS_DISTANCE_KM : distance;
+		double oldAvgDistance = user.getAvgDistance() != null ? user.getAvgDistance() : 0.0;
+		double oldAvgScore = user.getAvgScore() != null ? user.getAvgScore() : 0.0;
+
+		user.setRoundsPlayed(newRoundsPlayed);
+		user.setAvgDistance(((oldAvgDistance * oldRoundsPlayed) + statsDistance) / newRoundsPlayed);
+		user.setAvgScore(((oldAvgScore * oldRoundsPlayed) + scoreRound) / newRoundsPlayed);
+
+		userRepository.save(user);
 		userRepository.flush();
 	}
 
@@ -209,6 +234,12 @@ public class UserService {
 
 		if (newPassword.length() < MIN_PASSWORD_LENGTH) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The password must be at least 8 characters long.");
+		}
+	}
+
+	private void validateMascotId(Integer mascotId) {
+		if (mascotId == null || mascotId <= 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The mascot id must be a positive integer.");
 		}
 	}
 	

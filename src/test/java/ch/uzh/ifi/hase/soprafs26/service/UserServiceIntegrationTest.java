@@ -17,7 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
 
@@ -60,7 +59,7 @@ public class UserServiceIntegrationTest {
 		assertNotNull(createdUser.getPasswordHash());
 		assertTrue(BCrypt.checkpw("password123", createdUser.getPasswordHash()));
 		assertNotNull(createdUser.getToken());
-		assertEquals(UserStatus.ONLINE, createdUser.getStatus());
+		assertEquals(1, createdUser.getMascotId());
 		assertNotNull(createdUser.getCreationDate());
 	}
 
@@ -79,7 +78,7 @@ public class UserServiceIntegrationTest {
 		assertEquals(createdUser.getId(), foundUser.getId());
 		assertEquals(createdUser.getUsername(), foundUser.getUsername());
 		assertEquals(createdUser.getBio(), foundUser.getBio());
-		assertEquals(createdUser.getStatus(), foundUser.getStatus());
+		assertEquals(createdUser.getMascotId(), foundUser.getMascotId());
 		assertEquals(createdUser.getCreationDate(), foundUser.getCreationDate());
 	}
 
@@ -112,7 +111,6 @@ public class UserServiceIntegrationTest {
 
 		// then
 		assertEquals("testUsername", loggedInUser.getUsername());
-		assertEquals(UserStatus.ONLINE, loggedInUser.getStatus());
 		assertNotNull(loggedInUser.getToken());
 	}
 
@@ -130,7 +128,6 @@ public class UserServiceIntegrationTest {
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
-		assertEquals(UserStatus.OFFLINE, updatedUser.getStatus());
 		assertNotEquals(oldToken, updatedUser.getToken());
 		assertNull(userRepository.findByToken(oldToken));
 	}
@@ -145,11 +142,10 @@ public class UserServiceIntegrationTest {
 		String oldToken = createdUser.getToken();
 
 		// when
-		userService.updateUser(createdUser.getId(), oldToken, null, "newPassword123");
+		userService.updateUser(createdUser.getId(), oldToken, null, "newPassword123", null);
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
-		assertEquals(UserStatus.OFFLINE, updatedUser.getStatus());
 		assertNotEquals(oldToken, updatedUser.getToken());
 		assertTrue(BCrypt.checkpw("newPassword123", updatedUser.getPasswordHash()));
 	}
@@ -163,12 +159,37 @@ public class UserServiceIntegrationTest {
 		User createdUser = userService.createUser(testUser, "oldPassword123");
 
 		// when
-		userService.updateUser(createdUser.getId(), createdUser.getToken(), "  Updated bio  ", null);
+		userService.updateUser(createdUser.getId(), createdUser.getToken(), "  Updated bio  ", null, null);
 
 		// then
 		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
 		assertEquals("Updated bio", updatedUser.getBio());
-		assertEquals(UserStatus.ONLINE, updatedUser.getStatus());
+	}
+
+	@Test
+	public void updateUser_mascotOnly_success() {
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "oldPassword123");
+
+		userService.updateUser(createdUser.getId(), createdUser.getToken(), null, null, 7);
+
+		User updatedUser = userRepository.findById(createdUser.getId()).orElseThrow();
+		assertEquals(7, updatedUser.getMascotId());
+	}
+
+	@Test
+	public void updateUser_invalidMascot_throwsException() {
+		User testUser = new User();
+		testUser.setUsername("testUsername");
+		testUser.setBio("Short bio");
+		User createdUser = userService.createUser(testUser, "oldPassword123");
+
+		ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+				() -> userService.updateUser(createdUser.getId(), createdUser.getToken(), null, null, 0));
+
+		assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
 	}
 
 	@Test

@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
 import ch.uzh.ifi.hase.soprafs26.entity.SessionUser;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
@@ -31,7 +30,6 @@ public class SessionUserRepositoryIntegrationTest {
         user.setUsername("firstname@lastname");
         user.setBio("Short bio");
         user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
-        user.setStatus(UserStatus.OFFLINE);
         user.setToken("1");
         LocalDateTime currentDateTime = LocalDateTime.of(2026, 1, 1, 8, 30, 00);
         Session session = new Session();
@@ -67,7 +65,6 @@ public class SessionUserRepositoryIntegrationTest {
         user.setUsername("firstname@lastname");
         user.setBio("Short bio");
         user.setPasswordHash("$2a$10$M6Q4j0c5xmq5eS7z7hSI6eqWQ2F/N8z6p10tmSMx8nggKQWQqTKe2");
-        user.setStatus(UserStatus.OFFLINE);
         user.setToken("1");
         LocalDateTime currentDateTime = LocalDateTime.of(2026, 1, 1, 8, 30, 00);
         Session session = new Session();

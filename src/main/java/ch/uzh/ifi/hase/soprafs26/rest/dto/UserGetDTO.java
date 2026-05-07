@@ -1,13 +1,14 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-
 public class UserGetDTO {
 
 	private Long id;
 	private String username;
 	private String bio;
-	private UserStatus status;
+	private Integer mascot_id;
+	private Integer rounds_played;
+	private Double avg_distance;
+	private Double avg_score;
 
 	public Long getId() {
 		return id;
@@ -33,11 +34,35 @@ public class UserGetDTO {
 		this.bio = bio;
 	}
 
-	public UserStatus getStatus() {
-		return status;
+	public Integer getMascot_id() {
+		return mascot_id;
 	}
 
-	public void setStatus(UserStatus status) {
-		this.status = status;
+	public void setMascot_id(Integer mascot_id) {
+		this.mascot_id = mascot_id;
+	}
+
+	public Integer getRounds_played() {
+		return rounds_played;
+	}
+
+	public void setRounds_played(Integer rounds_played) {
+		this.rounds_played = rounds_played;
+	}
+
+	public Double getAvg_distance() {
+		return avg_distance;
+	}
+
+	public void setAvg_distance(Double avg_distance) {
+		this.avg_distance = avg_distance;
+	}
+
+	public Double getAvg_score() {
+		return avg_score;
+	}
+
+	public void setAvg_score(Double avg_score) {
+		this.avg_score = avg_score;
 	}
 }
