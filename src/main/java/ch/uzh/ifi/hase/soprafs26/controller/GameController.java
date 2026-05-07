@@ -83,7 +83,7 @@ public class GameController {
 		double distance;
 		int scoreRound;
 
-		if (userGuessObj.getLatitude() == -1.0 && userGuessObj.getLatitude() == -1.0) {
+		if (userGuessObj.getLatitude() == -1.0 && userGuessObj.getLongitude() == -1.0) {
 			distance = -1.0;
 			scoreRound = 0;
 
@@ -97,6 +97,7 @@ public class GameController {
 		gameService.saveCoordinates(userGuessObj.getUserId(), userGuessObj.getSessionId(), userGuessObj.getLatitude(),
 				userGuessObj.getLongitude());
 		gameService.validateSessionGameGuess(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
+		userService.recordPlayedRound(userGuessObj.getUserId(), distance, scoreRound);
 
 		return DTOMapper.INSTANCE.convertEntityToUserAnswerPutDTO(gameData, distance, scoreRound, scoreOverall,
 				userGuessObj.getLatitude(), userGuessObj.getLongitude());

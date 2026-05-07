@@ -28,6 +28,7 @@ public class UserService {
 
 	private static final int MAX_BIO_LENGTH = 280;
 	private static final int MIN_PASSWORD_LENGTH = 8;
+	private static final double NO_GUESS_DISTANCE_KM = 20000.0;
 
 	private final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -146,6 +147,23 @@ public class UserService {
 		}
 
 		userRepository.save(targetUser);
+		userRepository.flush();
+	}
+
+	public void recordPlayedRound(Long userId, double distance, int scoreRound) {
+		User user = getUserById(userId);
+
+		int oldRoundsPlayed = user.getRoundsPlayed() != null ? user.getRoundsPlayed() : 0;
+		int newRoundsPlayed = oldRoundsPlayed + 1;
+		double statsDistance = distance < 0 ? NO_GUESS_DISTANCE_KM : distance;
+		double oldAvgDistance = user.getAvgDistance() != null ? user.getAvgDistance() : 0.0;
+		double oldAvgScore = user.getAvgScore() != null ? user.getAvgScore() : 0.0;
+
+		user.setRoundsPlayed(newRoundsPlayed);
+		user.setAvgDistance(((oldAvgDistance * oldRoundsPlayed) + statsDistance) / newRoundsPlayed);
+		user.setAvgScore(((oldAvgScore * oldRoundsPlayed) + scoreRound) / newRoundsPlayed);
+
+		userRepository.save(user);
 		userRepository.flush();
 	}
 

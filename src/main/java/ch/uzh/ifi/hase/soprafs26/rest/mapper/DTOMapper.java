@@ -37,6 +37,9 @@ public interface DTOMapper {
 	@Mapping(target = "passwordHash", ignore = true)
 	@Mapping(target = "token", ignore = true)
 	@Mapping(target = "mascotId", ignore = true)
+	@Mapping(target = "roundsPlayed", ignore = true)
+	@Mapping(target = "avgDistance", ignore = true)
+	@Mapping(target = "avgScore", ignore = true)
 	@Mapping(target = "creationDate", ignore = true)
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
@@ -46,12 +49,18 @@ public interface DTOMapper {
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
 	@Mapping(source = "mascotId", target = "mascot_id")
+	@Mapping(source = "roundsPlayed", target = "rounds_played")
+	@Mapping(source = "avgDistance", target = "avg_distance")
+	@Mapping(source = "avgScore", target = "avg_score")
 	UserGetDTO convertEntityToUserGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
 	@Mapping(source = "mascotId", target = "mascot_id")
+	@Mapping(source = "roundsPlayed", target = "rounds_played")
+	@Mapping(source = "avgDistance", target = "avg_distance")
+	@Mapping(source = "avgScore", target = "avg_score")
 	@Mapping(source = "creationDate", target = "creationDate")
 	UserProfileGetDTO convertEntityToUserProfileGetDTO(User user);
 
