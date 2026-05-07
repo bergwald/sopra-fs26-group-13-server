@@ -161,6 +161,7 @@ public class GameControllerTest {
 
 		verify(gameService).saveScore(1L, 40, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 		verify(gameService).validateSessionGameGuess("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", 1);
+		verify(userService).recordPlayedRound(1L, 100.0, 40);
 	}
 
 	@Test
@@ -233,6 +234,8 @@ public class GameControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.scoreRound", is(0)))
 				.andExpect(jsonPath("$.distance", is(-1.0)));
+
+		verify(userService).recordPlayedRound(1L, -1.0, 0);
         }
         @Test
         void givenMissingGameData_whenGetGameData_thenReturnNotFound() throws Exception {

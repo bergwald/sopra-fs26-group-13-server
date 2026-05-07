@@ -384,6 +384,47 @@ public class UserServiceTest {
 	}
 
 	@Test
+	public void recordPlayedRound_firstRound_setsStats() {
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		userService.recordPlayedRound(1L, 1000.0, 50);
+
+		assertEquals(1, testUser.getRoundsPlayed());
+		assertEquals(1000.0, testUser.getAvgDistance(), 1e-9);
+		assertEquals(50.0, testUser.getAvgScore(), 1e-9);
+		Mockito.verify(userRepository).save(testUser);
+		Mockito.verify(userRepository).flush();
+	}
+
+	@Test
+	public void recordPlayedRound_multipleRounds_updatesAverages() {
+		testUser.setRoundsPlayed(2);
+		testUser.setAvgDistance(1000.0);
+		testUser.setAvgScore(75.0);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		userService.recordPlayedRound(1L, 4000.0, 0);
+
+		assertEquals(3, testUser.getRoundsPlayed());
+		assertEquals(2000.0, testUser.getAvgDistance(), 1e-9);
+		assertEquals(50.0, testUser.getAvgScore(), 1e-9);
+	}
+
+	@Test
+	public void recordPlayedRound_noGuess_usesMaximumDistanceAndZeroScore() {
+		testUser.setRoundsPlayed(1);
+		testUser.setAvgDistance(1000.0);
+		testUser.setAvgScore(100.0);
+		Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+		userService.recordPlayedRound(1L, -1.0, 0);
+
+		assertEquals(2, testUser.getRoundsPlayed());
+		assertEquals(10500.0, testUser.getAvgDistance(), 1e-9);
+		assertEquals(50.0, testUser.getAvgScore(), 1e-9);
+	}
+
+	@Test
 	public void getAuthenticatedUser_validToken_success() {
 		// given
 		Mockito.when(userRepository.findByToken("valid-token")).thenReturn(testUser);
