@@ -128,6 +128,14 @@ public class SessionService {
         sessionUserRepository.saveAllAndFlush(sessionUsers);
     }
 
+    public void resetUserGuessSubmitted(UUID sessionId) throws ResponseStatusException {
+        List<SessionUser> sessionUsers = getAllSessionUser(sessionId);
+        for (SessionUser su : sessionUsers) {
+            su.setGuessSubmitted(false);
+        }
+        sessionUserRepository.saveAllAndFlush(sessionUsers);
+    }
+
     public Session validateSessionExpiryDate(Session session) {
         if (session.getSessionExpiryDateTime().isAfter(LocalDateTime.now().plusHours(EXPIRE_HOURS))) {
             deleteSession(session);
