@@ -441,6 +441,7 @@ public class SessionServiceTest {
         sessionService.cleanUpSessionBeforeCreating(mockUser.getId());
 
         verify(sessionUserRepository).delete(su);
+        verify(sessionUserRepository).flush();
         verify(sessionRepository, never()).delete(any());
     }
 

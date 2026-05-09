@@ -78,6 +78,7 @@ public class SessionService {
                     String.format("Session with id %s is already in progress. You can't join this session.",
                             sessionId.toString()));
         }
+        cleanUpSessionBeforeCreating(userId);
         SessionUser sessionUser = sessionUserRepository.findById(userId)
                 .orElse(createNewSessionUser(userId, sessionId, userSessionRole));
 
@@ -242,6 +243,7 @@ public class SessionService {
                 deleteSession(sessionUser.get().getSession());
             } else {
                 this.sessionUserRepository.delete(sessionUser.get());
+                this.sessionUserRepository.flush();
             }
         }
     }
