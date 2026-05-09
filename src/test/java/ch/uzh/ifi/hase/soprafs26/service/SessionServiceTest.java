@@ -179,6 +179,8 @@ public class SessionServiceTest {
 
     @Test
     void testResetCoordinatesOfSessionUsers_success() {
+        mockSessionUser.setGuessLatitude(99);
+        mockSessionUser.setGuessLongitude(77);
         when(sessionUserRepository.findBySessionId(any(UUID.class)))
                 .thenReturn(Collections.singletonList(mockSessionUser));
 
@@ -186,6 +188,16 @@ public class SessionServiceTest {
         assertEquals(-1, mockSessionUser.getGuessLatitude());
         assertEquals(-1, mockSessionUser.getGuessLongitude());
 
+    }
+
+    @Test
+    void testResetUserGuessSubmitted() {
+        mockSessionUser.setGuessSubmitted(true);
+        when(sessionUserRepository.findBySessionId(any(UUID.class)))
+                .thenReturn(Collections.singletonList(mockSessionUser));
+
+        sessionService.resetUserGuessSubmitted(mockSession.getId());
+        assertEquals(false, mockSessionUser.getGuessSubmitted());
     }
 
     @Test
