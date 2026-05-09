@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs26.entity.User;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserPostDTO;
@@ -58,7 +56,10 @@ public class UserControllerTest {
 		user.setId(1L);
 		user.setUsername("testUsername");
 		user.setBio("Short bio");
-		user.setStatus(UserStatus.ONLINE);
+		user.setMascotId(3);
+		user.setRoundsPlayed(4);
+		user.setAvgDistance(1250.5);
+		user.setAvgScore(72.25);
 		user.setToken("valid-token");
 		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 		return user;
@@ -82,7 +83,10 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$[0].id", is(1)))
 				.andExpect(jsonPath("$[0].username", is("testUsername")))
 				.andExpect(jsonPath("$[0].bio", is("Short bio")))
-				.andExpect(jsonPath("$[0].status", is(UserStatus.ONLINE.toString())));
+				.andExpect(jsonPath("$[0].mascot_id", is(3)))
+				.andExpect(jsonPath("$[0].rounds_played", is(4)))
+				.andExpect(jsonPath("$[0].avg_distance", is(1250.5)))
+				.andExpect(jsonPath("$[0].avg_score", is(72.25)));
 	}
 
 	/**
@@ -109,7 +113,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
-				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.token", is("valid-token")));
 	}
 
@@ -121,32 +125,45 @@ public class UserControllerTest {
 	public void givenUserId_whenGetUser_thenReturnJsonObject() throws Exception {
 		// given
 		User user = sampleUser();
-		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
-		when(userService.getAuthenticatedUser("valid-token")).thenReturn(sampleUser());
 		given(userService.getUserById(1L)).willReturn(user);
 
 		// when/then
 		mockMvc.perform(get("/users/{userId}", 1L)
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer valid-token"))
+				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
-				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
+				.andExpect(jsonPath("$.rounds_played", is(4)))
+				.andExpect(jsonPath("$.avg_distance", is(1250.5)))
+				.andExpect(jsonPath("$.avg_score", is(72.25)))
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
+
+		verify(userService, never()).extractBearerToken(anyString());
+		verify(userService, never()).getAuthenticatedUser(anyString());
 	}
 
-	/** Tests GET /users/{userId} and verifies a missing Authorization header returns 401. */
+	/** Tests GET /users/{userId} and verifies a missing Authorization header still returns the public profile. */
 	@Test
-	public void givenMissingAuthorization_whenGetUser_thenReturnUnauthorized() throws Exception {
+	public void givenMissingAuthorization_whenGetUser_thenReturnJsonObject() throws Exception {
 		// given
-		when(userService.extractBearerToken(null))
-				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
+		User user = sampleUser();
+		given(userService.getUserById(1L)).willReturn(user);
 
 		// when/then
 		mockMvc.perform(get("/users/{userId}", 1L).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isUnauthorized());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is(1)))
+				.andExpect(jsonPath("$.username", is("testUsername")))
+				.andExpect(jsonPath("$.bio", is("Short bio")))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
+				.andExpect(jsonPath("$.rounds_played", is(4)))
+				.andExpect(jsonPath("$.avg_distance", is(1250.5)))
+				.andExpect(jsonPath("$.avg_score", is(72.25)));
+
+		verify(userService, never()).extractBearerToken(anyString());
+		verify(userService, never()).getAuthenticatedUser(anyString());
 	}
 
 	/**
@@ -171,7 +188,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.username", is("testUsername")))
 				.andExpect(jsonPath("$.bio", is("Short bio")))
-				.andExpect(jsonPath("$.status", is(UserStatus.ONLINE.toString())))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.token", is("valid-token")));
 	}
 
@@ -246,7 +263,23 @@ public class UserControllerTest {
 				.content(controllerTestHelper.asJsonString(userUpdatePutDTO)))
 				.andExpect(status().isNoContent());
 
-		verify(userService).updateUser(1L, "valid-token", "Updated bio", null);
+		verify(userService).updateUser(1L, "valid-token", "Updated bio", null, null);
+	}
+
+	@Test
+	public void updateUser_mascotOnly_noContent() throws Exception {
+		UserUpdatePutDTO userUpdatePutDTO = new UserUpdatePutDTO();
+		userUpdatePutDTO.setMascot_id(7);
+
+		when(userService.extractBearerToken(anyString())).thenReturn("valid-token");
+
+		mockMvc.perform(put("/users/{userId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token")
+				.content(controllerTestHelper.asJsonString(userUpdatePutDTO)))
+				.andExpect(status().isNoContent());
+
+		verify(userService).updateUser(1L, "valid-token", null, null, 7);
 	}
 
 	/** Tests PUT /users/{userId} and verifies an invalid token returns 401. */

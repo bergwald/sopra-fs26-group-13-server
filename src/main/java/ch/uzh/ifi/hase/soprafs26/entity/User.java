@@ -2,8 +2,6 @@ package ch.uzh.ifi.hase.soprafs26.entity;
 
 import jakarta.persistence.*;
 
-import ch.uzh.ifi.hase.soprafs26.constant.UserStatus;
-
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
@@ -42,7 +40,16 @@ public class User implements Serializable {
 	private String token;
 
 	@Column(nullable = false)
-	private UserStatus status;
+	private Integer mascotId = 1;
+
+	@Column(nullable = false)
+	private Integer roundsPlayed = 0;
+
+	@Column(nullable = false)
+	private Double avgDistance = 0.0;
+
+	@Column(nullable = false)
+	private Double avgScore = 0.0;
 
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)
@@ -88,12 +95,36 @@ public class User implements Serializable {
 		this.token = token;
 	}
 
-	public UserStatus getStatus() {
-		return status;
+	public Integer getMascotId() {
+		return mascotId;
 	}
 
-	public void setStatus(UserStatus status) {
-		this.status = status;
+	public void setMascotId(Integer mascotId) {
+		this.mascotId = mascotId;
+	}
+
+	public Integer getRoundsPlayed() {
+		return roundsPlayed;
+	}
+
+	public void setRoundsPlayed(Integer roundsPlayed) {
+		this.roundsPlayed = roundsPlayed;
+	}
+
+	public Double getAvgDistance() {
+		return avgDistance;
+	}
+
+	public void setAvgDistance(Double avgDistance) {
+		this.avgDistance = avgDistance;
+	}
+
+	public Double getAvgScore() {
+		return avgScore;
+	}
+
+	public void setAvgScore(Double avgScore) {
+		this.avgScore = avgScore;
 	}
 
 	public Instant getCreationDate() {
