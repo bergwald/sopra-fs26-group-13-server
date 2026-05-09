@@ -84,6 +84,7 @@ public class SessionController {
 			sessionUserDetail.setRoundStartedDateTime(su.getSession().getRoundStartedDateTime());
 			sessionUserDetail.setGuessLatitude(su.getGuessLatitude());
 			sessionUserDetail.setGuessLongitude(su.getGuessLongitude());
+			sessionUserDetail.setGuessSubmitted(su.getGuessSubmitted());
 			sessionUserDTOs.add(sessionUserDetail);
 		}
 		return sessionUserDTOs;
