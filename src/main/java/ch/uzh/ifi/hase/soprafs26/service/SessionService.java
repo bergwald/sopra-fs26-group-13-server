@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs26.service;
 
+import ch.uzh.ifi.hase.soprafs26.constant.SearchRegion;
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 import ch.uzh.ifi.hase.soprafs26.entity.Game_data;
 import ch.uzh.ifi.hase.soprafs26.entity.Session;
@@ -81,11 +82,6 @@ public class SessionService {
         cleanUpSessionBeforeCreating(userId);
         SessionUser sessionUser = sessionUserRepository.findById(userId)
                 .orElse(createNewSessionUser(userId, sessionId, userSessionRole));
-
-        if (userSessionRole.equals(UserSessionRole.OWNER)) {
-            // Initializes the game if the user is the owner
-            initializeGameDate(currentSession);
-        }
 
         this.sessionUserRepository.save(sessionUser);
         this.sessionUserRepository.flush();
@@ -176,9 +172,11 @@ public class SessionService {
         return getAllSessionUser(sessionId);
     }
 
-    public void initializeGameDate(Session session) {
+
+    public void initializeGameDate(Session session, String searchRegion) {
+        List<SearchRegion> searchRegions = googlePanoramaService.getSearchRegionsFromString(searchRegion);
         for (int roundNumber = 1; roundNumber <= GAME_TOTAL_ROUNDS; roundNumber++) {
-            GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate();
+            GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate(searchRegions);
 
             Game_data gameData = new Game_data();
             gameData.setSessionId(session.getIdAsString());

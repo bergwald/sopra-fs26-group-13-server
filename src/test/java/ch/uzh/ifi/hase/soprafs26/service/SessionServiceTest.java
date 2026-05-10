@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +34,7 @@ import ch.uzh.ifi.hase.soprafs26.repository.GameDataRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.SessionUserRepository;
 import ch.uzh.ifi.hase.soprafs26.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs26.constant.SearchRegion;
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 
 public class SessionServiceTest {
@@ -49,6 +51,8 @@ public class SessionServiceTest {
 
     private User mockUser;
     private SessionUser mockSessionUser;
+
+    private List<SearchRegion> mockSearchRegions;
 
     @BeforeEach
     void setUp() {
@@ -80,6 +84,11 @@ public class SessionServiceTest {
         mockSessionUser = new SessionUser();
         mockSessionUser.setUser(mockUser);
         mockSessionUser.setSession(mockSession);
+
+        mockSearchRegions = List.of(new SearchRegion("Alps", 6.0, 45.0, 7.0, 46.0),
+                new SearchRegion("Alps", 1.0, 42.0, 4.0, 46.0),
+                new SearchRegion("Alps", 1.0, 42.0, 4.0, 46.0));
+
     }
 
     @Test
@@ -295,12 +304,13 @@ public class SessionServiceTest {
         when(mockCandidate.latitude()).thenReturn(40.7128);
         when(mockCandidate.longitude()).thenReturn(-74.0060);
 
-        when(googlePanoramaService.fetchPanoramaCandidate()).thenReturn(mockCandidate);
+        when(googlePanoramaService.getSearchRegionsFromString(anyString())).thenReturn(mockSearchRegions);
+        when(googlePanoramaService.fetchPanoramaCandidate(any())).thenReturn(mockCandidate);
 
-        sessionService.initializeGameDate(mockSession);
+        sessionService.initializeGameDate(mockSession, "Alps");
 
         verify(gameDataRepository, times(3)).save(any(Game_data.class));
-        verify(googlePanoramaService, times(3)).fetchPanoramaCandidate();
+        verify(googlePanoramaService, times(3)).fetchPanoramaCandidate(mockSearchRegions);
         verify(gameDataRepository).flush();
     }
 
