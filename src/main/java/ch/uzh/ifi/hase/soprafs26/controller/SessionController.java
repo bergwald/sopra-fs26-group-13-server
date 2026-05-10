@@ -84,6 +84,7 @@ public class SessionController {
 			sessionUserDetail.setRoundStartedDateTime(su.getSession().getRoundStartedDateTime());
 			sessionUserDetail.setGuessLatitude(su.getGuessLatitude());
 			sessionUserDetail.setGuessLongitude(su.getGuessLongitude());
+			sessionUserDetail.setGuessSubmitted(su.getGuessSubmitted());
 			sessionUserDTOs.add(sessionUserDetail);
 		}
 		return sessionUserDTOs;
@@ -104,6 +105,7 @@ public class SessionController {
 			Session session = sessionService.getSessionWithId(sessionId);
 			Integer increasedRoundNumber = sessionService.increaseSessionRoundNumber(session, currentRoundNumber, 3);
 			sessionService.resetCoordinatesOfSessionUsers(session.getId());
+			sessionService.resetUserGuessSubmitted(session.getId());
 			return increasedRoundNumber;
 		} else {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the owner of this session");

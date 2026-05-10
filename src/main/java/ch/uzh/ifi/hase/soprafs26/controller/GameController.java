@@ -96,6 +96,7 @@ public class GameController {
 		long scoreOverall = gameService.saveScore(userGuessObj.getUserId(), scoreRound, userGuessObj.getSessionId());
 		gameService.saveCoordinates(userGuessObj.getUserId(), userGuessObj.getSessionId(), userGuessObj.getLatitude(),
 				userGuessObj.getLongitude());
+		gameService.updateUserGuessFlag(userGuessObj.getUserId(), userGuessObj.getSessionId());
 		gameService.validateSessionGameGuess(userGuessObj.getSessionId(), userGuessObj.getRoundNumber());
 		userService.recordPlayedRound(userGuessObj.getUserId(), distance, scoreRound);
 
