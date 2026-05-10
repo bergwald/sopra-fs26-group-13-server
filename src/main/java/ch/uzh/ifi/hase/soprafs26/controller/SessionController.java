@@ -77,6 +77,7 @@ public class SessionController {
 			SessionUserDetailsGetDTO sessionUserDetail = new SessionUserDetailsGetDTO();
 			sessionUserDetail.setId(su.getUser().getId());
 			sessionUserDetail.setSessionId(su.getSession().getIdAsString());
+			sessionUserDetail.setUsername(su.getUser().getUsername());
 			sessionUserDetail.setRoundNumber(su.getSession().getRoundNumber());
 			sessionUserDetail.setSessionExpiryDateTime(su.getSession().getSessionExpiryDateTime());
 			sessionUserDetail.setScore(su.getScore());
@@ -84,6 +85,7 @@ public class SessionController {
 			sessionUserDetail.setRoundStartedDateTime(su.getSession().getRoundStartedDateTime());
 			sessionUserDetail.setGuessLatitude(su.getGuessLatitude());
 			sessionUserDetail.setGuessLongitude(su.getGuessLongitude());
+			sessionUserDetail.setGuessSubmitted(su.getGuessSubmitted());
 			sessionUserDTOs.add(sessionUserDetail);
 		}
 		return sessionUserDTOs;
@@ -104,6 +106,7 @@ public class SessionController {
 			Session session = sessionService.getSessionWithId(sessionId);
 			Integer increasedRoundNumber = sessionService.increaseSessionRoundNumber(session, currentRoundNumber, 3);
 			sessionService.resetCoordinatesOfSessionUsers(session.getId());
+			sessionService.resetUserGuessSubmitted(session.getId());
 			return increasedRoundNumber;
 		} else {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the owner of this session");
@@ -113,6 +116,7 @@ public class SessionController {
 	@PostMapping("/session")
 	@ResponseStatus(HttpStatus.CREATED)
 	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost,
+			@RequestParam(required = false, defaultValue = "") String region,
 			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 			@RequestHeader(value = "userId", required = false) Long userId) {
 		// Creates a new session and returns the new session type
@@ -121,7 +125,9 @@ public class SessionController {
 		validateBodyUserId(userId, sessionPost.getUserId());
 
 		Session createdSession = sessionService.createNewSession(sessionPost.getUserId());
+		sessionService.initializeGameDate(createdSession, region);
 		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId(), UserSessionRole.OWNER);
+
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
 

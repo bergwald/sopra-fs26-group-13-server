@@ -76,6 +76,14 @@ public class GameService {
 
     }
 
+    public void updateUserGuessFlag(Long userId, String sessionId) {
+        UUID sessionUuid = parseSessionId(sessionId);
+        SessionUser sessionUser = requireSessionMembership(userId, sessionUuid);
+        sessionUser.setGuessSubmitted(true);
+        sessionUserRepository.saveAndFlush(sessionUser);
+
+    }
+
     public int validateSessionGameGuess(String sessionId, int submittedRoundNumber) {
         UUID sessionUuid = parseSessionId(sessionId);
         Session session = sessionRepository.findById(sessionUuid);

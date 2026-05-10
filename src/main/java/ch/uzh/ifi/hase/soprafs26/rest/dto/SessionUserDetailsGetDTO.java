@@ -8,6 +8,7 @@ public class SessionUserDetailsGetDTO {
 
     private Long id;
     private String sessionId;
+    private String username;
     private LocalDateTime sessionExpiryDateTime;
     private Integer roundNumber;
     private Long score;
@@ -15,6 +16,7 @@ public class SessionUserDetailsGetDTO {
     private LocalDateTime roundStartedDateTime;
     private double guessLatitude;
     private double guessLongitude;
+    private boolean guessSubmitted;
 
     public Long getId() {
         return this.id;
@@ -30,6 +32,14 @@ public class SessionUserDetailsGetDTO {
 
     public void setSessionId(String id) {
         this.sessionId = id;
+    }
+    
+    public String getUsername() {
+        return this.username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public LocalDateTime getSessionExpiryDateTime() {
@@ -86,6 +96,14 @@ public class SessionUserDetailsGetDTO {
 
     public void setGuessLongitude(double guessLongitude) {
         this.guessLongitude = guessLongitude;
+    }
+
+    public boolean getGuessSubmitted() {
+        return this.guessSubmitted;
+    }
+
+    public void setGuessSubmitted(boolean guessSubmitted) {
+        this.guessSubmitted = guessSubmitted;
     }
 
 }
