@@ -1,11 +1,9 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import java.time.LocalDateTime;
-
 public class SessionGetDTO {
 
     private String id;
-    private LocalDateTime sessionExpiryDateTime;
+    private String sessionExpiryDateTime;
     private Integer roundNumber;
 
     public String getId() {
@@ -16,11 +14,11 @@ public class SessionGetDTO {
         this.id = id;
     }
 
-    public LocalDateTime getSessionExpiryDateTime() {
+    public String getSessionExpiryDateTime() {
         return sessionExpiryDateTime;
     }
 
-    public void setSessionExpiryDateTime(LocalDateTime sessionExpiryDateTime) {
+    public void setSessionExpiryDateTime(String sessionExpiryDateTime) {
         this.sessionExpiryDateTime = sessionExpiryDateTime;
     }
 

@@ -15,6 +15,7 @@ import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.SessionUserDetailsGetDTO;
 
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.ApiDateTimeFormatter;
 import ch.uzh.ifi.hase.soprafs26.service.SessionService;
 
 import java.util.List;
@@ -79,10 +80,12 @@ public class SessionController {
 			sessionUserDetail.setSessionId(su.getSession().getIdAsString());
 			sessionUserDetail.setUsername(su.getUser().getUsername());
 			sessionUserDetail.setRoundNumber(su.getSession().getRoundNumber());
-			sessionUserDetail.setSessionExpiryDateTime(su.getSession().getSessionExpiryDateTime());
+			sessionUserDetail.setSessionExpiryDateTime(
+					ApiDateTimeFormatter.toUtcIsoString(su.getSession().getSessionExpiryDateTime()));
 			sessionUserDetail.setScore(su.getScore());
 			sessionUserDetail.setUserRole(su.getUserRole());
-			sessionUserDetail.setRoundStartedDateTime(su.getSession().getRoundStartedDateTime());
+			sessionUserDetail.setRoundStartedDateTime(
+					ApiDateTimeFormatter.toUtcIsoString(su.getSession().getRoundStartedDateTime()));
 			sessionUserDetail.setGuessLatitude(su.getGuessLatitude());
 			sessionUserDetail.setGuessLongitude(su.getGuessLongitude());
 			sessionUserDetail.setGuessSubmitted(su.getGuessSubmitted());

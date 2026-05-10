@@ -7,6 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.GameDataGetDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserGuessPutDTO;
 import ch.uzh.ifi.hase.soprafs26.rest.dto.UserAnswerPutDTO;
+import ch.uzh.ifi.hase.soprafs26.rest.mapper.ApiDateTimeFormatter;
 import ch.uzh.ifi.hase.soprafs26.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs26.service.GameService;
 import ch.uzh.ifi.hase.soprafs26.service.GuessEvaluationService;
@@ -54,7 +55,7 @@ public class GameController {
 		Game_data output = gameService.getSessionRoundDataForUser(userId, sessionId, roundNumber);
 		Session session = sessionService.getSessionWithId(sessionId);
 		GameDataGetDTO gameData = DTOMapper.INSTANCE.convertEntityToGameDataGetDTO(output);
-		gameData.setRoundStartedDateTime(session.getRoundStartedDateTime());
+		gameData.setRoundStartedDateTime(ApiDateTimeFormatter.toUtcIsoString(session.getRoundStartedDateTime()));
 		return gameData;
 	}
 

@@ -1,7 +1,5 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import java.time.LocalDateTime;
-
 import ch.uzh.ifi.hase.soprafs26.constant.UserSessionRole;
 
 public class SessionUserDetailsGetDTO {
@@ -9,11 +7,11 @@ public class SessionUserDetailsGetDTO {
     private Long id;
     private String sessionId;
     private String username;
-    private LocalDateTime sessionExpiryDateTime;
+    private String sessionExpiryDateTime;
     private Integer roundNumber;
     private Long score;
     private UserSessionRole userRole;
-    private LocalDateTime roundStartedDateTime;
+    private String roundStartedDateTime;
     private double guessLatitude;
     private double guessLongitude;
     private boolean guessSubmitted;
@@ -42,11 +40,11 @@ public class SessionUserDetailsGetDTO {
         this.username = username;
     }
 
-    public LocalDateTime getSessionExpiryDateTime() {
+    public String getSessionExpiryDateTime() {
         return sessionExpiryDateTime;
     }
 
-    public void setSessionExpiryDateTime(LocalDateTime sessionExpiryDateTime) {
+    public void setSessionExpiryDateTime(String sessionExpiryDateTime) {
         this.sessionExpiryDateTime = sessionExpiryDateTime;
     }
 
@@ -74,11 +72,11 @@ public class SessionUserDetailsGetDTO {
         this.userRole = userRole;
     }
 
-    public LocalDateTime getRoundStartedDateTime() {
+    public String getRoundStartedDateTime() {
         return roundStartedDateTime;
     }
 
-    public void setRoundStartedDateTime(LocalDateTime roundStartedDateTime) {
+    public void setRoundStartedDateTime(String roundStartedDateTime) {
         this.roundStartedDateTime = roundStartedDateTime;
     }
 
