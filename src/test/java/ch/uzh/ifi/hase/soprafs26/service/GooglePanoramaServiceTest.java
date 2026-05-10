@@ -56,7 +56,7 @@ public class GooglePanoramaServiceTest {
   @Test
   void getSearchRegionsFromString_validEmpty() {
     List<SearchRegion> result = mockGooglePanoramaService.getSearchRegionsFromString("");
-    assertEquals(7, result.size());
+    assertEquals(8, result.size());
   }
 
   @Test
