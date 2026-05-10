@@ -96,7 +96,7 @@ public class GooglePanoramaService {
         return regions;
     }
 
-    public GooglePanoramaCandidate fetchPanoramaCandidate(List<SearchRegion> searchRegions) {
+    public GooglePanoramaCandidate fetchPanoramaCandidate(List<SearchRegion> searchRegions) throws ResponseStatusException{
         if (searchRegions.isEmpty()) {
             throw new ResponseStatusException(NOT_FOUND, "No panorama search regions are configured.");
         }
