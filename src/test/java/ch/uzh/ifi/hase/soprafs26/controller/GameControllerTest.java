@@ -104,7 +104,10 @@ public class GameControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imageUrl", is(gameData.getImageUrl())))
                 .andExpect(jsonPath("$.roundNumber", is(gameData.getRoundNumber())))
-                .andExpect(jsonPath("$.sessionId", is(gameData.getSessionId())));
+                .andExpect(jsonPath("$.sessionId", is(gameData.getSessionId())))
+                .andExpect(jsonPath("$.roundStartedDateTime",
+                        is(ch.uzh.ifi.hase.soprafs26.rest.mapper.ApiDateTimeFormatter
+                                .toUtcIsoString(session.getRoundStartedDateTime()))));
     }
 /*
     @Test

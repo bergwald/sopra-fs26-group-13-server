@@ -82,7 +82,7 @@ public interface DTOMapper {
 	Game_data convertGameGetDTOToEntity(GameGetDTO gameGetDTO);
 
 	@Mapping(source = "id", target = "id")
-	@Mapping(source = "sessionExpiryDateTime", target = "sessionExpiryDateTime")
+	@Mapping(target = "sessionExpiryDateTime", expression = "java(ApiDateTimeFormatter.toUtcIsoString(session.getSessionExpiryDateTime()))")
 	@Mapping(source = "roundNumber", target = "roundNumber")
 	SessionGetDTO convertEntitityToSessionGetDTO(Session session);
 

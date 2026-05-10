@@ -1,13 +1,11 @@
 package ch.uzh.ifi.hase.soprafs26.rest.dto;
 
-import java.time.LocalDateTime;
-
 public class GameDataGetDTO {
 
 	private String imageUrl;
 	private int roundNumber;
 	private String sessionId;
-	private LocalDateTime roundStartedDateTime;
+	private String roundStartedDateTime;
 
 	public String getImageUrl() {
 		return imageUrl;
@@ -33,11 +31,11 @@ public class GameDataGetDTO {
 		this.sessionId = sessionId;
 	}
 
-	public LocalDateTime getRoundStartedDateTime() {
+	public String getRoundStartedDateTime() {
 		return roundStartedDateTime;
 	}
 
-	public void setRoundStartedDateTime(LocalDateTime roundStartedDateTime) {
+	public void setRoundStartedDateTime(String roundStartedDateTime) {
 		this.roundStartedDateTime = roundStartedDateTime;
 	}
 }

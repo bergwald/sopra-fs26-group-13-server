@@ -59,6 +59,7 @@ public class SessionControllerTest {
                 session.setId(testUuid);
                 session.setRoundNumber(0);
                 session.setSessionExpiryDateTime(LocalDateTime.of(2026, 1, 1, 8, 1, 1, 1));
+                session.setRoundStartedDateTime(LocalDateTime.of(2026, 1, 1, 8, 0, 0, 0));
                 return session;
         }
 
@@ -81,6 +82,10 @@ public class SessionControllerTest {
                 return sessionUser;
         }
 
+        private String utcIsoString(LocalDateTime localDateTime) {
+                return ch.uzh.ifi.hase.soprafs26.rest.mapper.ApiDateTimeFormatter.toUtcIsoString(localDateTime);
+        }
+
         @Test
         public void givenSessions_whenGetSession_thenReturnJsonArray() throws Exception {
                 Session session = sampleSession();
@@ -97,7 +102,7 @@ public class SessionControllerTest {
                                 .andExpect(jsonPath("$[0].id", is(session.getId().toString())))
                                 .andExpect(jsonPath("$[0].roundNumber", is(session.getRoundNumber())))
                                 .andExpect(jsonPath("$[0].sessionExpiryDateTime",
-                                                is(session.getSessionExpiryDateTime().toString())));
+                                                is(utcIsoString(session.getSessionExpiryDateTime()))));
         }
 
         @Test
@@ -156,8 +161,11 @@ public class SessionControllerTest {
                                 .andExpect(jsonPath("$[0].roundNumber",
                                                 is(sampleSessionUser.getSession().getRoundNumber())))
                                 .andExpect(jsonPath("$[0].sessionExpiryDateTime",
-                                                is(sampleSessionUser.getSession().getSessionExpiryDateTime()
-                                                                .toString())))
+                                                is(utcIsoString(sampleSessionUser.getSession()
+                                                                .getSessionExpiryDateTime()))))
+                                .andExpect(jsonPath("$[0].roundStartedDateTime",
+                                                is(utcIsoString(sampleSessionUser.getSession()
+                                                                .getRoundStartedDateTime()))))
                                 .andExpect(jsonPath("$[0].score", is(sampleSessionUser.getScore().intValue())))
                                 .andExpect(jsonPath("$[0].userRole", is(sampleSessionUser.getUserRole().toString())));
 
@@ -264,7 +272,7 @@ public class SessionControllerTest {
                                 .andExpect(jsonPath("$.id", is(session.getId().toString())))
                                 .andExpect(jsonPath("$.roundNumber", is(session.getRoundNumber())))
                                 .andExpect(jsonPath("$.sessionExpiryDateTime",
-                                                is(session.getSessionExpiryDateTime().toString())));
+                                                is(utcIsoString(session.getSessionExpiryDateTime()))));
         }
 
         @Test
@@ -326,7 +334,7 @@ public class SessionControllerTest {
                                 .andExpect(jsonPath("$.id", is(session.getId().toString())))
                                 .andExpect(jsonPath("$.roundNumber", is(session.getRoundNumber())))
                                 .andExpect(jsonPath("$.sessionExpiryDateTime",
-                                                is(session.getSessionExpiryDateTime().toString())));
+                                                is(utcIsoString(session.getSessionExpiryDateTime()))));
         }
 
         @Test
