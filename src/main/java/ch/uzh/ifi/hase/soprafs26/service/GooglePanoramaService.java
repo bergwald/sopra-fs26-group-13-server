@@ -4,7 +4,9 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
+
 import java.util.Locale;
 import java.util.Random;
 
@@ -17,27 +19,19 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import ch.uzh.ifi.hase.soprafs26.constant.GameRegions;
+import ch.uzh.ifi.hase.soprafs26.constant.SearchRegion;
+
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 public class GooglePanoramaService {
 
-    private static final List<SearchRegion> DEFAULT_SEARCH_REGIONS = List.of(
-            new SearchRegion("Swiss Alps", 6.15, 45.75, 10.75, 47.95),
-            new SearchRegion("Dolomites", 10.65, 45.65, 12.55, 47.10),
-            new SearchRegion("Austrian Alps", 12.10, 46.55, 15.80, 47.95),
-            new SearchRegion("Rocky Mountains", -117.50, 39.90, -104.20, 51.40),
-            new SearchRegion("Central Andes", -71.80, -36.90, -68.10, -29.20),
-            new SearchRegion("Himalayas", 82.80, 27.20, 88.90, 29.90),
-            new SearchRegion("Japanese Alps", 136.65, 35.15, 138.85, 37.35),
-            new SearchRegion("Southern Alps", 167.05, -45.95, 171.10, -42.15));
-
     private final GoogleMapsHttpClient googleMapsHttpClient;
     private final GoogleMapsApiKeyProvider googleMapsApiKeyProvider;
     private final ObjectMapper objectMapper;
     private final Random random;
-    private final List<SearchRegion> searchRegions;
     private final String elevationEndpoint;
     private final String streetViewMetadataEndpoint;
     private final int minimumElevationMeters;
@@ -59,7 +53,6 @@ public class GooglePanoramaService {
                 googleMapsHttpClient,
                 googleMapsApiKeyProvider,
                 new SecureRandom(),
-                DEFAULT_SEARCH_REGIONS,
                 elevationEndpoint,
                 streetViewMetadataEndpoint,
                 minimumElevationMeters,
@@ -72,7 +65,6 @@ public class GooglePanoramaService {
             GoogleMapsHttpClient googleMapsHttpClient,
             GoogleMapsApiKeyProvider googleMapsApiKeyProvider,
             Random random,
-            List<SearchRegion> searchRegions,
             String elevationEndpoint,
             String streetViewMetadataEndpoint,
             int minimumElevationMeters,
@@ -83,24 +75,39 @@ public class GooglePanoramaService {
         this.googleMapsApiKeyProvider = googleMapsApiKeyProvider;
         this.objectMapper = new ObjectMapper();
         this.random = random;
-        this.searchRegions = List.copyOf(searchRegions);
         this.elevationEndpoint = elevationEndpoint;
         this.streetViewMetadataEndpoint = streetViewMetadataEndpoint;
         this.minimumElevationMeters = minimumElevationMeters;
         this.streetViewRadiusMeters = streetViewRadiusMeters;
         this.maxAttemptsPerRegion = maxAttemptsPerRegion;
         this.streetViewSource = streetViewSource;
+    };
+
+    public List<SearchRegion> getSearchRegionsFromString(String searchRegion) {
+        if (searchRegion.isEmpty()) {
+            List<SearchRegion> regions = GameRegions.getAllRegionsList();
+            return regions;
+        }
+        List<SearchRegion> regions = GameRegions.getRegions(searchRegion);
+        if (regions.isEmpty()) {
+            String availableRegions = String.join(", ", GameRegions.getRegionMap().keySet());
+            throw new ResponseStatusException(NOT_FOUND, "The provided region was not found! Available regions: " + availableRegions);
+        }
+        return regions;
     }
 
-    public GooglePanoramaCandidate fetchPanoramaCandidate() {
+    public GooglePanoramaCandidate fetchPanoramaCandidate(List<SearchRegion> searchRegions) {
         if (searchRegions.isEmpty()) {
             throw new ResponseStatusException(NOT_FOUND, "No panorama search regions are configured.");
         }
+        List<Integer> randomIndices = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            randomIndices.add(random.nextInt(searchRegions.size()));
+        }
 
         String apiKey = googleMapsApiKeyProvider.getApiKey();
-        int startIndex = random.nextInt(searchRegions.size());
-        for (int regionOffset = 0; regionOffset < searchRegions.size(); regionOffset++) {
-            SearchRegion region = searchRegions.get((startIndex + regionOffset) % searchRegions.size());
+        for (int index : randomIndices) {
+            SearchRegion region = searchRegions.get(index);
             GooglePanoramaCandidate candidate = tryFindPanoramaInRegion(region, apiKey);
             if (candidate != null) {
                 return candidate;
@@ -139,7 +146,7 @@ public class GooglePanoramaService {
                 + "&key=" + encodeValue(apiKey));
 
         JsonNode response = parseJson(googleMapsHttpClient.get(requestUri));
-        String status = response.path("status").asText();
+        String status = response.path("status").asString();
         if ("OK".equals(status)) {
             JsonNode firstResult = response.path("results").path(0);
             double elevation = firstResult.path("elevation").asDouble(Double.NaN);
@@ -149,7 +156,7 @@ public class GooglePanoramaService {
             return false;
         }
 
-        String message = response.path("error_message").asText();
+        String message = response.path("error_message").asString();
         throw googleMapsError("Elevation API", status, message);
     }
 
@@ -167,9 +174,9 @@ public class GooglePanoramaService {
         }
 
         JsonNode response = parseJson(googleMapsHttpClient.get(URI.create(uriBuilder.toString())));
-        String status = response.path("status").asText();
+        String status = response.path("status").asString();
         if ("OK".equals(status)) {
-            String panoId = response.path("pano_id").asText();
+            String panoId = response.path("pano_id").asString();
             JsonNode location = response.path("location");
             double latitude = location.path("lat").asDouble(Double.NaN);
             double longitude = location.path("lng").asDouble(Double.NaN);
@@ -183,7 +190,7 @@ public class GooglePanoramaService {
             return null;
         }
 
-        String message = response.path("error_message").asText();
+        String message = response.path("error_message").asString();
         throw googleMapsError("Street View metadata", status, message);
     }
 
@@ -209,14 +216,6 @@ public class GooglePanoramaService {
 
     private String encodeValue(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
-    }
-
-    record SearchRegion(
-            String name,
-            double minLongitude,
-            double minLatitude,
-            double maxLongitude,
-            double maxLatitude) {
     }
 
     record SamplePoint(double latitude, double longitude) {
