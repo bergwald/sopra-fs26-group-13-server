@@ -8,6 +8,7 @@ public class SessionUserDetailsGetDTO {
 
     private Long id;
     private String sessionId;
+    private String username;
     private LocalDateTime sessionExpiryDateTime;
     private Integer roundNumber;
     private Long score;
@@ -31,6 +32,14 @@ public class SessionUserDetailsGetDTO {
 
     public void setSessionId(String id) {
         this.sessionId = id;
+    }
+    
+    public String getUsername() {
+        return this.username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public LocalDateTime getSessionExpiryDateTime() {

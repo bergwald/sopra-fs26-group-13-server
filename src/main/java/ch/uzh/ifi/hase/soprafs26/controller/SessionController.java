@@ -77,6 +77,7 @@ public class SessionController {
 			SessionUserDetailsGetDTO sessionUserDetail = new SessionUserDetailsGetDTO();
 			sessionUserDetail.setId(su.getUser().getId());
 			sessionUserDetail.setSessionId(su.getSession().getIdAsString());
+			sessionUserDetail.setUsername(su.getUser().getUsername());
 			sessionUserDetail.setRoundNumber(su.getSession().getRoundNumber());
 			sessionUserDetail.setSessionExpiryDateTime(su.getSession().getSessionExpiryDateTime());
 			sessionUserDetail.setScore(su.getScore());
