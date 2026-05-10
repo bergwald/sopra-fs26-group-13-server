@@ -15,6 +15,7 @@ public class SessionUserDetailsGetDTO {
     private LocalDateTime roundStartedDateTime;
     private double guessLatitude;
     private double guessLongitude;
+    private boolean guessSubmitted;
 
     public Long getId() {
         return this.id;
@@ -86,6 +87,14 @@ public class SessionUserDetailsGetDTO {
 
     public void setGuessLongitude(double guessLongitude) {
         this.guessLongitude = guessLongitude;
+    }
+
+    public boolean getGuessSubmitted() {
+        return this.guessSubmitted;
+    }
+
+    public void setGuessSubmitted(boolean guessSubmitted) {
+        this.guessSubmitted = guessSubmitted;
     }
 
 }

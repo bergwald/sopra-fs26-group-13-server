@@ -36,6 +36,9 @@ public class SessionUser implements Serializable {
     @Column
     private double guessLatitude = -1;
 
+    @Column
+    private Boolean guessSubmitted = false;
+
     public Long getId() {
         return this.id;
     }
@@ -75,7 +78,7 @@ public class SessionUser implements Serializable {
     public void setUserRole(UserSessionRole userRole) {
         this.userRole = userRole;
     }
-    
+
     public double getGuessLatitude() {
         return this.guessLatitude;
     }
@@ -90,5 +93,13 @@ public class SessionUser implements Serializable {
 
     public void setGuessLongitude(double guessLongitude) {
         this.guessLongitude = guessLongitude;
+    }
+
+    public boolean getGuessSubmitted() {
+        return this.guessSubmitted;
+    }
+
+    public void setGuessSubmitted(Boolean guessSubmitted) {
+        this.guessSubmitted = guessSubmitted;
     }
 }
