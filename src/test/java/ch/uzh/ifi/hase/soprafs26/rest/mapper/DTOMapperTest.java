@@ -158,7 +158,8 @@ public class DTOMapperTest {
 
 		assertEquals(session.getIdAsString(), sessionGetDTO.getId());
 		assertEquals(session.getRoundNumber(), sessionGetDTO.getRoundNumber());
-		assertEquals(session.getSessionExpiryDateTime(), sessionGetDTO.getSessionExpiryDateTime());
+		assertEquals(ApiDateTimeFormatter.toUtcIsoString(session.getSessionExpiryDateTime()),
+				sessionGetDTO.getSessionExpiryDateTime());
 	}
 
 	@Test
