@@ -113,6 +113,7 @@ public class SessionController {
 	@PostMapping("/session")
 	@ResponseStatus(HttpStatus.CREATED)
 	public SessionGetDTO createSession(@RequestBody SessionPostDTO sessionPost,
+			@RequestParam(required = false, defaultValue = "") String region,
 			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
 			@RequestHeader(value = "userId", required = false) Long userId) {
 		// Creates a new session and returns the new session type
@@ -121,7 +122,9 @@ public class SessionController {
 		validateBodyUserId(userId, sessionPost.getUserId());
 
 		Session createdSession = sessionService.createNewSession(sessionPost.getUserId());
+		sessionService.initializeGameDate(createdSession, region);
 		sessionService.userJoinSession(sessionPost.getUserId(), createdSession.getId(), UserSessionRole.OWNER);
+
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
 	}
 
