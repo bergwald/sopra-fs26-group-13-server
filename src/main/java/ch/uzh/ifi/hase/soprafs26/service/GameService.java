@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -134,6 +135,7 @@ public class GameService {
         if (currentSessionUser.getUserRole().equals(UserSessionRole.OWNER) && roundNumber == 0) {
             Session session = sessionRepository.findById(sessionId);
             session.setRoundNumber(1);
+            session.setRoundStartedDateTime(LocalDateTime.now());
             sessionRepository.save(session);
             sessionRepository.flush();
             return 1;

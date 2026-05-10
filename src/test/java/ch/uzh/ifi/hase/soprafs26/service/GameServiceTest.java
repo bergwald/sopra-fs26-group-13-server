@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -86,6 +87,8 @@ public class GameServiceTest {
 		when(gameDataRepository.findBySessionIdAndRoundNumber(session.getId().toString(), 1)).thenReturn(gameData);
 		Game_data gameDataReturn = gameService.getSessionRoundDataForUser(user.getId(), session.getId().toString(), 0);
 		assertEquals(1, gameDataReturn.getRoundNumber());
+		assertEquals(1, session.getRoundNumber());
+		assertNotNull(session.getRoundStartedDateTime());
 		verify(sessionRepository).save(session);
 
 
