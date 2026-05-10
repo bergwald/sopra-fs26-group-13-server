@@ -27,7 +27,7 @@ public class GameRegionsTest {
         List<SearchRegion> regions = GameRegions.getRegions("NewZealandAlps");
 
         assertNotNull(regions);
-        assertEquals(1, regions.size());
+        assertEquals(2, regions.size());
     }
 
     @Test
@@ -79,6 +79,6 @@ public class GameRegionsTest {
     public void testGetAllRegionsList() {
         List<SearchRegion> allRegions = GameRegions.getAllRegionsList();
         assertNotNull(allRegions);
-        assertEquals(6, allRegions.size());
+        assertEquals(7, allRegions.size());
     }
 }
