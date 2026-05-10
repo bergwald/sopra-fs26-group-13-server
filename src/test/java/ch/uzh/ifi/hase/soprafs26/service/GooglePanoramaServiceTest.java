@@ -20,6 +20,7 @@ public class GooglePanoramaServiceTest {
 
   private GoogleMapsHttpClient googleMapsHttpClient;
   private GoogleMapsApiKeyProvider googleMapsApiKeyProvider;
+  private GooglePanoramaService mockGooglePanoramaService;
 
   private List<SearchRegion> mockSearchRegion;
   private List<SearchRegion> mockSearchRegions;
@@ -33,20 +34,41 @@ public class GooglePanoramaServiceTest {
     mockSearchRegions = List.of(
         new SearchRegion("LowRegion", 6.0, 45.0, 7.0, 46.0),
         new SearchRegion("HighRegion", 10.0, 47.0, 11.0, 48.0));
-  }
-
-  @Test
-  void fetchPanoramaCandidate_returnsPanoramaFromSelectedRegion() {
-    GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
+    mockGooglePanoramaService = new GooglePanoramaService(
         googleMapsHttpClient,
         googleMapsApiKeyProvider,
         new FixedRandom(0, 0, 0),
         "https://maps.googleapis.com/maps/api/elevation/json",
         "https://maps.googleapis.com/maps/api/streetview/metadata",
         1000,
-        2500,
-        2,
+        3000,
+        1,
         "default");
+
+  }
+
+  @Test
+  void getSearchRegionsFromString_validRegion() {
+    List<SearchRegion> result = mockGooglePanoramaService.getSearchRegionsFromString("Alps");
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  void getSearchRegionsFromString_validEmpty() {
+    List<SearchRegion> result = mockGooglePanoramaService.getSearchRegionsFromString("");
+    assertEquals(6, result.size());
+  }
+
+  @Test
+  void getSearchRegionsFromString_invalidRegion() {
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> mockGooglePanoramaService.getSearchRegionsFromString("SomeRandomRegion"));
+    assertEquals(404, exception.getStatusCode().value());
+  }
+
+  @Test
+  void fetchPanoramaCandidate_returnsPanoramaFromSelectedRegion() {
 
     when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
         .thenReturn("""
@@ -70,7 +92,7 @@ public class GooglePanoramaServiceTest {
               "status": "OK"
             }
             """);
-    GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate(mockSearchRegion);
+    GooglePanoramaCandidate candidate = mockGooglePanoramaService.fetchPanoramaCandidate(mockSearchRegion);
 
     assertEquals("test-pano-id", candidate.panoId());
     assertEquals(45.321, candidate.latitude());
@@ -79,16 +101,6 @@ public class GooglePanoramaServiceTest {
 
   @Test
   void fetchPanoramaCandidate_skipsLowAltitudePointsAndFallsBackToNextRegion() {
-    GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
-        googleMapsHttpClient,
-        googleMapsApiKeyProvider,
-        new FixedRandom(0, 0, 0, 0, 0),
-        "https://maps.googleapis.com/maps/api/elevation/json",
-        "https://maps.googleapis.com/maps/api/streetview/metadata",
-        1000,
-        2500,
-        1,
-        "default");
 
     when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
         .thenReturn("""
@@ -120,7 +132,7 @@ public class GooglePanoramaServiceTest {
             }
             """);
 
-    GooglePanoramaCandidate candidate = googlePanoramaService.fetchPanoramaCandidate(mockSearchRegions);
+    GooglePanoramaCandidate candidate = mockGooglePanoramaService.fetchPanoramaCandidate(mockSearchRegions);
 
     assertEquals("fallback-pano", candidate.panoId());
     assertEquals(47.123, candidate.latitude());
@@ -129,16 +141,6 @@ public class GooglePanoramaServiceTest {
 
   @Test
   void fetchPanoramaCandidate_buildsMetadataRequestWithRadiusAndSource() {
-    GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
-        googleMapsHttpClient,
-        googleMapsApiKeyProvider,
-        new FixedRandom(0, 0, 0),
-        "https://maps.googleapis.com/maps/api/elevation/json",
-        "https://maps.googleapis.com/maps/api/streetview/metadata",
-        1000,
-        3000,
-        1,
-        "default");
 
     when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
         .thenReturn("""
@@ -161,7 +163,7 @@ public class GooglePanoramaServiceTest {
             }
             """);
 
-    googlePanoramaService.fetchPanoramaCandidate(mockSearchRegion);
+    mockGooglePanoramaService.fetchPanoramaCandidate(mockSearchRegion);
 
     ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
     org.mockito.Mockito.verify(googleMapsHttpClient, org.mockito.Mockito.times(2)).get(uriCaptor.capture());
@@ -198,17 +200,6 @@ public class GooglePanoramaServiceTest {
 
   @Test
   void fetchPanoramaCandidate_whenNoPanoramaFound_thenThrowNotFound() {
-    GooglePanoramaService googlePanoramaService = new GooglePanoramaService(
-        googleMapsHttpClient,
-        googleMapsApiKeyProvider,
-        new FixedRandom(0, 0, 0),
-        "https://maps.googleapis.com/maps/api/elevation/json",
-        "https://maps.googleapis.com/maps/api/streetview/metadata",
-        1000,
-        2500,
-        1,
-        "default");
-
     when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
         .thenReturn("""
             {
@@ -226,9 +217,71 @@ public class GooglePanoramaServiceTest {
             """);
 
     ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-        () -> googlePanoramaService.fetchPanoramaCandidate(List.of()));
+        () -> mockGooglePanoramaService.fetchPanoramaCandidate(List.of()));
 
     assertEquals(404, exception.getStatusCode().value());
+  }
+
+  @Test
+  void testFetchPanoramaCandidate_noDataAvailable() {
+    when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
+        .thenReturn("""
+            {
+              "results": [
+                {
+                  "elevation": 1920.4
+                }
+              ],
+              "status": "DATA_NOT_AVAILABLE"
+            }
+            """, """
+            {
+              "copyright": "Google",
+              "date": "2024-06",
+              "location": {
+                "lat": 45.321,
+                "lng": 6.654
+              },
+              "pano_id": "test-pano-id",
+              "status": "OK"
+            }
+            """);
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> mockGooglePanoramaService.fetchPanoramaCandidate(mockSearchRegion));
+    assertEquals(404, exception.getStatusCode().value());
+  }
+
+  @Test
+  void testFetchPanoramaCandidate_invalidJsonError() {
+    when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
+        .thenReturn("""
+            {
+              "results": [
+                {
+                  "Invalid json!"
+                }
+              ],
+              "status": "SomeRandomError"
+
+            """);
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> mockGooglePanoramaService.fetchPanoramaCandidate(mockSearchRegion));
+    assertEquals(502, exception.getStatusCode().value());
+  }
+
+  @Test
+  void testFetchPanoramaCandidate_unexpectedError() {
+    when(googleMapsHttpClient.get(org.mockito.ArgumentMatchers.any(URI.class)))
+        .thenReturn("""
+            {
+              "results": [],
+              "status": "SOME_ERROR",
+              "error_message": "There went something wrong"
+            }
+            """);
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        () -> mockGooglePanoramaService.fetchPanoramaCandidate(mockSearchRegion));
+    assertEquals(502, exception.getStatusCode().value());
   }
 
   private static final class FixedRandom extends Random {
