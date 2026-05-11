@@ -54,7 +54,7 @@ public class DTOMapperTest {
 		user.setMascotId(3);
 		user.setRoundsPlayed(4);
 		user.setAvgDistance(1250.5);
-		user.setAvgScore(72.25);
+		user.setScore(289L);
 
 		// MAP -> Create UserGetDTO
 		UserGetDTO userGetDTO = DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
@@ -66,7 +66,7 @@ public class DTOMapperTest {
 		assertEquals(user.getMascotId(), userGetDTO.getMascot_id());
 		assertEquals(user.getRoundsPlayed(), userGetDTO.getRounds_played());
 		assertEquals(user.getAvgDistance(), userGetDTO.getAvg_distance());
-		assertEquals(user.getAvgScore(), userGetDTO.getAvg_score());
+		assertEquals(user.getScore(), userGetDTO.getScore());
 	}
 
 	@Test
@@ -96,7 +96,7 @@ public class DTOMapperTest {
 		user.setMascotId(4);
 		user.setRoundsPlayed(3);
 		user.setAvgDistance(2000.0);
-		user.setAvgScore(50.0);
+		user.setScore(150L);
 		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 
 		UserProfileGetDTO userProfileGetDTO = DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(user);
@@ -107,7 +107,7 @@ public class DTOMapperTest {
 		assertEquals(user.getMascotId(), userProfileGetDTO.getMascot_id());
 		assertEquals(user.getRoundsPlayed(), userProfileGetDTO.getRounds_played());
 		assertEquals(user.getAvgDistance(), userProfileGetDTO.getAvg_distance());
-		assertEquals(user.getAvgScore(), userProfileGetDTO.getAvg_score());
+		assertEquals(user.getScore(), userProfileGetDTO.getScore());
 		assertEquals(user.getCreationDate(), userProfileGetDTO.getCreationDate());
 	}
 
