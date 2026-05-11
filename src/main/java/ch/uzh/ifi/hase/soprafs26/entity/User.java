@@ -49,7 +49,7 @@ public class User implements Serializable {
 	private Double avgDistance = 0.0;
 
 	@Column(nullable = false)
-	private Double avgScore = 0.0;
+	private Long score = 0L;
 
 	@CreationTimestamp
 	@Column(nullable = false, updatable = false)
@@ -119,12 +119,12 @@ public class User implements Serializable {
 		this.avgDistance = avgDistance;
 	}
 
-	public Double getAvgScore() {
-		return avgScore;
+	public Long getScore() {
+		return score;
 	}
 
-	public void setAvgScore(Double avgScore) {
-		this.avgScore = avgScore;
+	public void setScore(Long score) {
+		this.score = score;
 	}
 
 	public Instant getCreationDate() {

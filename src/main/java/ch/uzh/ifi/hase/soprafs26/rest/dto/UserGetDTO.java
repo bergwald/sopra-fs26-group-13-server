@@ -8,7 +8,7 @@ public class UserGetDTO {
 	private Integer mascot_id;
 	private Integer rounds_played;
 	private Double avg_distance;
-	private Double avg_score;
+	private Long score;
 
 	public Long getId() {
 		return id;
@@ -58,11 +58,11 @@ public class UserGetDTO {
 		this.avg_distance = avg_distance;
 	}
 
-	public Double getAvg_score() {
-		return avg_score;
+	public Long getScore() {
+		return score;
 	}
 
-	public void setAvg_score(Double avg_score) {
-		this.avg_score = avg_score;
+	public void setScore(Long score) {
+		this.score = score;
 	}
 }

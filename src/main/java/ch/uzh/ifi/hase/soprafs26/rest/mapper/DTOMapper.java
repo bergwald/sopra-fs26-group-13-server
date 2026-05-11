@@ -39,7 +39,7 @@ public interface DTOMapper {
 	@Mapping(target = "mascotId", ignore = true)
 	@Mapping(target = "roundsPlayed", ignore = true)
 	@Mapping(target = "avgDistance", ignore = true)
-	@Mapping(target = "avgScore", ignore = true)
+	@Mapping(target = "score", ignore = true)
 	@Mapping(target = "creationDate", ignore = true)
 	@Mapping(source = "username", target = "username")
 	@Mapping(source = "bio", target = "bio")
@@ -51,7 +51,7 @@ public interface DTOMapper {
 	@Mapping(source = "mascotId", target = "mascot_id")
 	@Mapping(source = "roundsPlayed", target = "rounds_played")
 	@Mapping(source = "avgDistance", target = "avg_distance")
-	@Mapping(source = "avgScore", target = "avg_score")
+	@Mapping(source = "score", target = "score")
 	UserGetDTO convertEntityToUserGetDTO(User user);
 
 	@Mapping(source = "id", target = "id")
@@ -60,7 +60,7 @@ public interface DTOMapper {
 	@Mapping(source = "mascotId", target = "mascot_id")
 	@Mapping(source = "roundsPlayed", target = "rounds_played")
 	@Mapping(source = "avgDistance", target = "avg_distance")
-	@Mapping(source = "avgScore", target = "avg_score")
+	@Mapping(source = "score", target = "score")
 	@Mapping(source = "creationDate", target = "creationDate")
 	UserProfileGetDTO convertEntityToUserProfileGetDTO(User user);
 
