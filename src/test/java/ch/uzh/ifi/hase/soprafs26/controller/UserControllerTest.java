@@ -59,7 +59,7 @@ public class UserControllerTest {
 		user.setMascotId(3);
 		user.setRoundsPlayed(4);
 		user.setAvgDistance(1250.5);
-		user.setAvgScore(72.25);
+		user.setScore(289L);
 		user.setToken("valid-token");
 		user.setCreationDate(Instant.parse("2026-02-25T14:35:00Z"));
 		return user;
@@ -86,7 +86,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$[0].mascot_id", is(3)))
 				.andExpect(jsonPath("$[0].rounds_played", is(4)))
 				.andExpect(jsonPath("$[0].avg_distance", is(1250.5)))
-				.andExpect(jsonPath("$[0].avg_score", is(72.25)));
+				.andExpect(jsonPath("$[0].score", is(289)));
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.rounds_played", is(4)))
 				.andExpect(jsonPath("$.avg_distance", is(1250.5)))
-				.andExpect(jsonPath("$.avg_score", is(72.25)))
+				.andExpect(jsonPath("$.score", is(289)))
 				.andExpect(jsonPath("$.creationDate", is(user.getCreationDate().toString())));
 
 		verify(userService, never()).extractBearerToken(anyString());
@@ -160,7 +160,7 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.mascot_id", is(3)))
 				.andExpect(jsonPath("$.rounds_played", is(4)))
 				.andExpect(jsonPath("$.avg_distance", is(1250.5)))
-				.andExpect(jsonPath("$.avg_score", is(72.25)));
+				.andExpect(jsonPath("$.score", is(289)));
 
 		verify(userService, never()).extractBearerToken(anyString());
 		verify(userService, never()).getAuthenticatedUser(anyString());
