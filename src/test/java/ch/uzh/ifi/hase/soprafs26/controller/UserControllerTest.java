@@ -213,6 +213,55 @@ public class UserControllerTest {
 				.andExpect(status().isUnauthorized());
 	}
 
+	@Test
+	public void validateAuth_validToken_returnAuthenticatedUser() throws Exception {
+		// given
+		User user = sampleUser();
+		when(userService.extractBearerToken("Bearer valid-token")).thenReturn("valid-token");
+		when(userService.getAuthenticatedUser("valid-token")).thenReturn(user);
+
+		// when/then
+		mockMvc.perform(get("/auth/validate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer valid-token"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", is(1)))
+				.andExpect(jsonPath("$.username", is("testUsername")))
+				.andExpect(jsonPath("$.bio", is("Short bio")))
+				.andExpect(jsonPath("$.mascot_id", is(3)))
+				.andExpect(jsonPath("$.rounds_played", is(4)))
+				.andExpect(jsonPath("$.avg_distance", is(1250.5)))
+				.andExpect(jsonPath("$.score", is(289)));
+
+		verify(userService).extractBearerToken("Bearer valid-token");
+		verify(userService).getAuthenticatedUser("valid-token");
+	}
+
+	@Test
+	public void validateAuth_missingAuthorizationHeader_unauthorized() throws Exception {
+		// given
+		when(userService.extractBearerToken(null))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
+
+		// when/then
+		mockMvc.perform(get("/auth/validate").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	public void validateAuth_invalidToken_unauthorized() throws Exception {
+		// given
+		when(userService.extractBearerToken("Bearer invalid-token")).thenReturn("invalid-token");
+		when(userService.getAuthenticatedUser("invalid-token"))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The provided token is invalid."));
+
+		// when/then
+		mockMvc.perform(get("/auth/validate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer invalid-token"))
+				.andExpect(status().isUnauthorized());
+	}
+
 	/**
 	 * Tests POST /logout and verifies a valid bearer token logs out with 204 No
 	 * Content.

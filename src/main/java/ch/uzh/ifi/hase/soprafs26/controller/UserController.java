@@ -72,6 +72,15 @@ public class UserController {
 		return DTOMapper.INSTANCE.convertEntityToUserRegisterResponseDTO(loggedInUser);
 	}
 
+	@GetMapping("/auth/validate")
+	@ResponseStatus(HttpStatus.OK)
+	public UserProfileGetDTO validateAuthenticatedUser(
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		User authenticatedUser = userService.getAuthenticatedUser(token);
+		return DTOMapper.INSTANCE.convertEntityToUserProfileGetDTO(authenticatedUser);
+	}
+
 	@PostMapping("/logout")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void logoutUser(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
