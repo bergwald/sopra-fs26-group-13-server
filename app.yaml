@@ -2,7 +2,10 @@
 # https://cloud.google.com/appengine/docs/standard
 
 runtime: java17
-instance_class: F2
+instance_class: B1
+
+manual_scaling:
+  instances: 1
 
 env_variables:
   GOOGLE_MAPS_API_KEY_SECRET_VERSION: "projects/402691723558/secrets/server-google-panorama/versions/1"
