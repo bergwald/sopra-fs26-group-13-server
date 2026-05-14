@@ -155,7 +155,7 @@ public class SessionController {
 
 
 	@DeleteMapping("/session/{sessionId}")
-	@ResponseStatus(HttpStatus.DELETED)
+	@ResponseStatus(HttpStatus.OK)
 	public int removeUserFromSession(
 			@PathVariable String sessionId,
 			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
@@ -166,7 +166,7 @@ public class SessionController {
 
 		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(UUID.fromString(sessionId),
 				userId);
-
+		sessionService.removeUserFromSession(sessionUser, userId);
 		return 401;
 	}
 

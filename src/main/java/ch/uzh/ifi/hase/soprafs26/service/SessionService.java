@@ -172,7 +172,6 @@ public class SessionService {
         return getAllSessionUser(sessionId);
     }
 
-
     public void initializeGameDate(Session session, String searchRegion) {
         List<SearchRegion> searchRegions = googlePanoramaService.getSearchRegionsFromString(searchRegion);
         for (int roundNumber = 1; roundNumber <= GAME_TOTAL_ROUNDS; roundNumber++) {
@@ -254,8 +253,40 @@ public class SessionService {
         }
     }
 
-    public void removeUserFromSession(Long user) {
+    public void removeUserFromSession(List<SessionUser> sessionUsers, Long userId) {
+        if (sessionUsers == null || sessionUsers.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No session users.");
+        }
+        SessionUser foundSessionUser = null;
+        for (SessionUser user : sessionUsers) {
+            if (user.getId().equals(userId)) {
+                foundSessionUser = user;
+                break;
+            }
+        }
+        if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId() == userId) {
+            deleteSession(sessionUsers.get(1).getSession());
+        } else if (sessionUsers.size() == 1 && foundSessionUser != null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not part of this session.");
+        } else {
+            if (foundSessionUser.getUserRole() == UserSessionRole.OWNER) {
+                passSessionOwnership(sessionUsers, foundSessionUser);
+            }
+            cleanUpSessionBeforeCreating(userId);
+        }
+    }
 
+    private void passSessionOwnership(List<SessionUser> allSessionUsers, SessionUser currentOwner) {
+        for (SessionUser user : allSessionUsers) {
+            if (!user.getId().equals(currentOwner.getId())) {
+                user.setUserRole(UserSessionRole.OWNER);
+                currentOwner.setUserRole(UserSessionRole.PLAYER);
+                sessionUserRepository.save(user);
+                sessionUserRepository.save(currentOwner);
+                sessionRepository.flush();
+                break;
+            }
+        }
     }
 
 }
