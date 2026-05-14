@@ -266,7 +266,7 @@ public class SessionService {
         }
         if (sessionUsers.size() == 1 && foundSessionUser == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not part of this session.");
-        } else if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId() == userId) {
+        } else if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId().equals(userId)) {
             deleteSession(sessionUsers.get(0).getSession());
         } else {
             if (foundSessionUser.getUserRole() == UserSessionRole.OWNER) {
