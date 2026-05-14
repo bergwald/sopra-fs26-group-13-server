@@ -190,6 +190,23 @@ public class SessionControllerTest {
         }
 
         @Test
+        public void givenInvalidSessionId_whenGetSessionDetails_thenReturnBadRequest() throws Exception {
+                given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+                given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
+                                .willReturn(sampleUser());
+                given(sessionService.getAllSessionUserForAuthorizedUser(any(UUID.class), anyLong()))
+                                .willReturn(Collections.emptyList());
+                MockHttpServletRequestBuilder getRequest = get("/session/{sessionId}", "abc")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer valid-token")
+                                .header("userId", "1");
+
+                // Perform the request and assert the response
+                mockMvc.perform(getRequest)
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
         public void givenEmptyAuthorization_whenGetSessionUser_thenReturnUnauthorized() throws Exception {
                 Session session = sampleSession();
                 List<Session> allSessions = Collections.singletonList(session);
@@ -335,6 +352,26 @@ public class SessionControllerTest {
                                 .andExpect(jsonPath("$.roundNumber", is(session.getRoundNumber())))
                                 .andExpect(jsonPath("$.sessionExpiryDateTime",
                                                 is(utcIsoString(session.getSessionExpiryDateTime()))));
+        }
+
+        @Test
+        public void givenInvalidSessionId_whenPutSession_thenThrowBadRequest() throws Exception {
+                Session session = sampleSession();
+
+                given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+                given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
+                                .willReturn(sampleUser());
+                given(sessionService.userJoinSession(anyLong(), any(), any())).willReturn(session);
+
+                SessionPutDTO sessionPut = new SessionPutDTO();
+                sessionPut.setUserId(1L);
+                sessionPut.setSessionId("invalid session id");
+
+                MockHttpServletRequestBuilder putRequest = put("/session").contentType(MediaType.APPLICATION_JSON)
+                                .content(controllerTestHelper.asJsonString(sessionPut))
+                                .header("Authorization", "Bearer valid-token").header("userId", 1);
+                ;
+                mockMvc.perform(putRequest).andExpect(status().isBadRequest());
         }
 
         @Test
