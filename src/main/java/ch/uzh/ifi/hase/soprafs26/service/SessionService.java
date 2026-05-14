@@ -79,8 +79,8 @@ public class SessionService {
     public String findSessionIdByShortId(String shortId) {
         List<Session> sessions = getAllSessions();
         for (Session session : sessions) {
-            String shortendSessionId = shortenUUID(session.getIdAsString());
-            if (shortendSessionId.equals(shortId)) {
+            String shortenedSessionId = shortenUUID(session.getIdAsString());
+            if (shortenedSessionId.equals(shortId)) {
                 return session.getIdAsString();
             }
         }
