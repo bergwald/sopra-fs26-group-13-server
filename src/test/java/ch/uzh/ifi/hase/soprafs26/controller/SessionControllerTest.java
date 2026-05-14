@@ -33,6 +33,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -412,6 +413,38 @@ public class SessionControllerTest {
                 MockHttpServletRequestBuilder putRequest = put("/session").contentType(MediaType.APPLICATION_JSON)
                                 .content(controllerTestHelper.asJsonString(sessionPut));
                 mockMvc.perform(putRequest).andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        public void givenValidAuthorization_whenDeleteFromSession_returnOk() throws Exception {
+                SessionUser sampleSessionUser = sampleSessionUser();
+                given(userService.extractBearerToken(anyString())).willReturn("valid-token");
+                given(userService.getAuthorizedTargetUser(anyLong(), anyString())).willReturn(sampleUser());
+                given(sessionService.getAllSessionUserForAuthorizedUser(any(UUID.class), anyLong()))
+                                .willReturn(Collections.singletonList(sampleSessionUser));
+                MockHttpServletRequestBuilder deleteRequest = delete("/session/{sessionId}",
+                                sampleSession().getIdAsString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer valid-token")
+                                .header("userId", "1");
+                mockMvc.perform(deleteRequest).andExpect(status().isOk());
+        }
+
+        @Test
+        public void givenInvalidAuthorization_whenDeleteFromSession_throwUnauthorized() throws Exception {
+                SessionUser sampleSessionUser = sampleSessionUser();
+                given(userService.extractBearerToken(anyString())).willReturn("invalid-token");
+                given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
+                                .willThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                                "The provided token is invalid."));
+                given(sessionService.getAllSessionUserForAuthorizedUser(any(UUID.class), anyLong()))
+                                .willReturn(Collections.singletonList(sampleSessionUser));
+                MockHttpServletRequestBuilder deleteRequest = delete("/session/{sessionId}",
+                                sampleSession().getIdAsString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer invalid-token")
+                                .header("userId", "1");
+                mockMvc.perform(deleteRequest).andExpect(status().isUnauthorized());
         }
 
 }

@@ -155,6 +155,22 @@ public class SessionController {
 		}
 	}
 
+
+	@DeleteMapping("/session/{sessionId}")
+	@ResponseStatus(HttpStatus.OK)
+	public void removeUserFromSession(
+			@PathVariable String sessionId,
+			@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+			@RequestHeader(value = "userId", required = false) Long userId) {
+
+		String token = this.userService.extractBearerToken(authorizationHeader);
+		this.userService.getAuthorizedTargetUser(userId, token);
+		UUID sessionUuid = getUuidFromString(sessionId);
+		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(sessionUuid,
+				userId);
+		sessionService.removeUserFromSession(sessionUser, userId);
+	}
+
 	private UUID getUuidFromString(String uuid) {
 		try {
 			UUID sessionUuid = UUID.fromString(uuid);

@@ -19,10 +19,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -84,6 +87,7 @@ public class SessionServiceTest {
         mockSessionUser = new SessionUser();
         mockSessionUser.setUser(mockUser);
         mockSessionUser.setSession(mockSession);
+        mockSessionUser.setId(mockUser.getId());
 
         mockSearchRegions = List.of(new SearchRegion("Alps", 6.0, 45.0, 7.0, 46.0),
                 new SearchRegion("Alps", 1.0, 42.0, 4.0, 46.0),
@@ -499,6 +503,66 @@ public class SessionServiceTest {
         verify(sessionUserRepository).flush();
         verify(sessionRepository).delete(su.getSession());
         verify(sessionRepository).flush();
+    }
+
+    @Test
+    void testRemoveUserFromSession_emptySessionUsers() {
+        List<SessionUser> emptyList = new ArrayList<>();
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.removeUserFromSession(emptyList, 1L);
+        });
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+
+    }
+
+    @Test
+    void testRemoveUserFromSession_singleOwnerRemoved() {
+        List<SessionUser> mockedSessionUsers = Collections.singletonList(mockSessionUser);
+        when(sessionUserRepository.findBySessionId(mockSession.getId())).thenReturn(mockedSessionUsers);
+        when(sessionService.getAllSessionUser(mockSession.getId())).thenReturn(mockedSessionUsers);
+        doNothing().when(sessionUserRepository).delete(mockSessionUser);
+        doNothing().when(sessionUserRepository).flush();
+        doNothing().when(sessionRepository).delete(mockSession);
+        doNothing().when(sessionRepository).flush();
+
+        sessionService.removeUserFromSession(mockedSessionUsers, mockSessionUser.getId());
+
+        verify(sessionUserRepository).delete(mockSessionUser);
+        verify(sessionUserRepository).flush();
+        verify(sessionRepository).delete(mockSession);
+        verify(sessionRepository).flush();
+    }
+
+    @Test
+    void testRemoveUserFromSession_userNotValid() {
+        mockSessionUser.setUserRole(UserSessionRole.PLAYER);
+        List<SessionUser> sessionUsers = Collections.singletonList(mockSessionUser);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            sessionService.removeUserFromSession(sessionUsers, 99L);
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+
+    }
+
+    @Test
+    void testRemoveUserFromSession_multipleUsersOwnerTransferred() {
+        SessionService spySessionService = Mockito.spy(sessionService);
+
+        mockSessionUser.setUserRole(UserSessionRole.OWNER);
+        mockSessionUser.setId(1L);
+
+        SessionUser secondSessionUser = new SessionUser();
+        secondSessionUser.setId(2L);
+        secondSessionUser.setUserRole(UserSessionRole.PLAYER);
+        secondSessionUser.setSession(mockSession);
+
+        List<SessionUser> mockedSessionUsers = Arrays.asList(mockSessionUser, secondSessionUser);
+
+        spySessionService.removeUserFromSession(mockedSessionUsers, mockSessionUser.getId());
+
+        verify(sessionRepository).flush();
+        verify(sessionUserRepository, times(2)).save(any(SessionUser.class));
+        assertEquals(secondSessionUser.getUserRole(), UserSessionRole.OWNER);
     }
 
 }
