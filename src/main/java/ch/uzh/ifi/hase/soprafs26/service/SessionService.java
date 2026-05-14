@@ -264,11 +264,10 @@ public class SessionService {
                 break;
             }
         }
-        if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId() == userId
-                && foundSessionUser.getUserRole() == UserSessionRole.OWNER) {
-            deleteSession(sessionUsers.get(0).getSession());
-        } else if (sessionUsers.size() == 1 && foundSessionUser != null) {
+        if (sessionUsers.size() == 1 && foundSessionUser == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not part of this session.");
+        } else if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId() == userId) {
+            deleteSession(sessionUsers.get(0).getSession());
         } else {
             if (foundSessionUser.getUserRole() == UserSessionRole.OWNER) {
                 passSessionOwnership(sessionUsers, foundSessionUser);
