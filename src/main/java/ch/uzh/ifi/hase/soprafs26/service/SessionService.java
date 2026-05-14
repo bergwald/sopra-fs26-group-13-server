@@ -254,4 +254,8 @@ public class SessionService {
         }
     }
 
+    public void removeUserFromSession(Long user) {
+
+    }
+
 }
