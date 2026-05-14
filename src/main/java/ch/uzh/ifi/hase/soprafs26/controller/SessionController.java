@@ -160,7 +160,7 @@ public class SessionController {
 			UUID sessionUuid = UUID.fromString(uuid);
 			return sessionUuid;
 		} catch (IllegalArgumentException e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id. Session id is malformed");
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session id. Session id is malformed");
 
 		}
 	}
