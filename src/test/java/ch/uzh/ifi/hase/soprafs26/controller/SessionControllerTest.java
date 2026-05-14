@@ -190,7 +190,7 @@ public class SessionControllerTest {
         }
 
         @Test
-        public void givenInvalidSessionId_whenGetSessionDetails_thenReturnBadRequest() throws Exception {
+        public void givenInvalidSessionId_whenGetSessionDetails_thenReturnNotFound() throws Exception {
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
                 given(userService.getAuthorizedTargetUser(anyLong(), anyString()))
                                 .willReturn(sampleUser());
@@ -203,7 +203,7 @@ public class SessionControllerTest {
 
                 // Perform the request and assert the response
                 mockMvc.perform(getRequest)
-                                .andExpect(status().isBadRequest());
+                                .andExpect(status().isNotFound());
         }
 
         @Test
@@ -355,7 +355,7 @@ public class SessionControllerTest {
         }
 
         @Test
-        public void givenInvalidSessionId_whenPutSession_thenThrowBadRequest() throws Exception {
+        public void givenInvalidSessionId_whenPutSession_thenThrowNotFound() throws Exception {
                 Session session = sampleSession();
 
                 given(userService.extractBearerToken(anyString())).willReturn("valid-token");
@@ -371,7 +371,7 @@ public class SessionControllerTest {
                                 .content(controllerTestHelper.asJsonString(sessionPut))
                                 .header("Authorization", "Bearer valid-token").header("userId", 1);
                 ;
-                mockMvc.perform(putRequest).andExpect(status().isBadRequest());
+                mockMvc.perform(putRequest).andExpect(status().isNotFound());
         }
 
         @Test
