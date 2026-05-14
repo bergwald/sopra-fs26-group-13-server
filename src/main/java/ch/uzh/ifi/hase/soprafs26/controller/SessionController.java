@@ -69,7 +69,8 @@ public class SessionController {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
 
-		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(UUID.fromString(sessionId),
+		UUID sessionIdUuid = getUuidFromString(sessionId);
+		List<SessionUser> sessionUser = sessionService.getAllSessionUserForAuthorizedUser(sessionIdUuid,
 				userId);
 
 		// Convert to DTOs
@@ -141,10 +142,11 @@ public class SessionController {
 			@RequestHeader(value = "userId", required = false) Long userId) {
 		String token = this.userService.extractBearerToken(authorizationHeader);
 		this.userService.getAuthorizedTargetUser(userId, token);
-		validateBodyUserId(userId, sessionPut.getUserId());
+		UUID sessionUuid = getUuidFromString(sessionPut.getSessionId());
 		Session createdSession = sessionService.userJoinSession(sessionPut.getUserId(),
-				UUID.fromString(sessionPut.getSessionId()), UserSessionRole.PLAYER);
+				sessionUuid, UserSessionRole.PLAYER);
 		return DTOMapper.INSTANCE.convertEntitityToSessionGetDTO(createdSession);
+
 	}
 
 	private void validateBodyUserId(Long authenticatedUserId, Long bodyUserId) {
@@ -168,6 +170,16 @@ public class SessionController {
 				userId);
 		sessionService.removeUserFromSession(sessionUser, userId);
 		return 401;
+	}
+
+	private UUID getUuidFromString(String uuid) {
+		try {
+			UUID sessionUuid = UUID.fromString(uuid);
+			return sessionUuid;
+		} catch (IllegalArgumentException e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session id. Session id is malformed");
+
+		}
 	}
 
 }
