@@ -155,7 +155,6 @@ public class SessionController {
 		}
 	}
 
-
 	@DeleteMapping("/session/{sessionId}")
 	@ResponseStatus(HttpStatus.OK)
 	public void removeUserFromSession(
@@ -172,8 +171,16 @@ public class SessionController {
 	}
 
 	private UUID getUuidFromString(String uuid) {
+		String fullUuid = uuid;
+		// UUID4 has a length of 36
+		if (uuid.length() < 36) {
+			fullUuid = sessionService.findSessionIdByShortId(uuid);
+			if (fullUuid == null) {
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session id. Session not found");
+			}
+		}
 		try {
-			UUID sessionUuid = UUID.fromString(uuid);
+			UUID sessionUuid = UUID.fromString(fullUuid);
 			return sessionUuid;
 		} catch (IllegalArgumentException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session id. Session id is malformed");

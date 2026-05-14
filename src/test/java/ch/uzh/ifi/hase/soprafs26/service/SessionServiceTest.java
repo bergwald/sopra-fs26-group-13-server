@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs26.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,6 +117,33 @@ public class SessionServiceTest {
         assertEquals(0, newSession.getRoundNumber());
         assertEquals(LocalDateTime.now().plusHours(2).toLocalDate().toString(),
                 newSession.getSessionExpiryDateTime().toLocalDate().toString());
+    }
+
+    @Test
+    void testShortenedSessionId() {
+        String mockSessionId = "aaaaaaaa-aaa1-aaa2-aaa3-aaaaaaaaaaaa";
+        String shortenedSessionId = sessionService.shortenUUID(mockSessionId);
+        assertEquals("a123a", shortenedSessionId);
+    }
+
+    @Test
+    void testFindSessionIdByShortId_valid() {
+        String mockSessionId = "aaaaaaaa-aaa1-aaa2-aaa3-aaaaaaaaaaaa";
+        mockSession.setId(UUID.fromString(mockSessionId));
+        List<Session> mockSessions = List.of(mockSession);
+        when(sessionRepository.findAll()).thenReturn(mockSessions);
+        String foundSessionId = sessionService.findSessionIdByShortId("a123a");
+        assertEquals(mockSessionId, foundSessionId);
+    }
+
+    @Test
+    void testFindSessionIdByShortId_invalid() {
+        String mockSessionId = "aaaaaaaa-aaa1-aaa2-aaa3-aaaaaaaaaaaa";
+        mockSession.setId(UUID.fromString(mockSessionId));
+        List<Session> mockSessions = List.of(mockSession);
+        when(sessionRepository.findAll()).thenReturn(mockSessions);
+        String foundSessionId = sessionService.findSessionIdByShortId("99999");
+        assertNull(foundSessionId);
     }
 
     @Test
