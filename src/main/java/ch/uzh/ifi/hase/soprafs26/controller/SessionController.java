@@ -90,6 +90,7 @@ public class SessionController {
 			sessionUserDetail.setGuessLatitude(su.getGuessLatitude());
 			sessionUserDetail.setGuessLongitude(su.getGuessLongitude());
 			sessionUserDetail.setGuessSubmitted(su.getGuessSubmitted());
+			sessionUserDetail.setMascotId(su.getUser().getMascotId());
 			sessionUserDTOs.add(sessionUserDetail);
 		}
 		return sessionUserDTOs;

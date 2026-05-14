@@ -15,6 +15,7 @@ public class SessionUserDetailsGetDTO {
     private double guessLatitude;
     private double guessLongitude;
     private boolean guessSubmitted;
+    private Integer mascotId;
 
     public Long getId() {
         return this.id;
@@ -102,6 +103,14 @@ public class SessionUserDetailsGetDTO {
 
     public void setGuessSubmitted(boolean guessSubmitted) {
         this.guessSubmitted = guessSubmitted;
+    }
+
+    public void setMascotId(Integer mascotId){
+        this.mascotId = mascotId;
+    }
+
+    public Integer getMascotId(){
+        return this.mascotId;
     }
 
 }
