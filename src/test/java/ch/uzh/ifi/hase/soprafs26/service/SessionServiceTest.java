@@ -526,7 +526,7 @@ public class SessionServiceTest {
         doNothing().when(sessionRepository).flush();
 
         sessionService.removeUserFromSession(mockedSessionUsers, mockSessionUser.getId());
-        
+
         verify(sessionUserRepository).delete(mockSessionUser);
         verify(sessionUserRepository).flush();
         verify(sessionRepository).delete(mockSession);
@@ -544,25 +544,25 @@ public class SessionServiceTest {
 
     }
 
-@Test
-void testRemoveUserFromSession_multipleUsersOwnerTransferred() {
-    SessionService spySessionService = Mockito.spy(sessionService);
-    
-    mockSessionUser.setUserRole(UserSessionRole.OWNER);
-    mockSessionUser.setId(1L);
-    
-    SessionUser secondSessionUser = new SessionUser();
-    secondSessionUser.setId(2L);
-    secondSessionUser.setUserRole(UserSessionRole.PLAYER);
-    secondSessionUser.setSession(mockSession);
-    
-    List<SessionUser> mockedSessionUsers = Arrays.asList(mockSessionUser, secondSessionUser);
-    
-    spySessionService.removeUserFromSession(mockedSessionUsers, mockSessionUser.getId());
-    
-    verify(sessionRepository).flush();
-    verify(sessionUserRepository, times(2)).save(any(SessionUser.class));
-    assertEquals(secondSessionUser.getUserRole(), UserSessionRole.OWNER);
-}
+    @Test
+    void testRemoveUserFromSession_multipleUsersOwnerTransferred() {
+        SessionService spySessionService = Mockito.spy(sessionService);
+
+        mockSessionUser.setUserRole(UserSessionRole.OWNER);
+        mockSessionUser.setId(1L);
+
+        SessionUser secondSessionUser = new SessionUser();
+        secondSessionUser.setId(2L);
+        secondSessionUser.setUserRole(UserSessionRole.PLAYER);
+        secondSessionUser.setSession(mockSession);
+
+        List<SessionUser> mockedSessionUsers = Arrays.asList(mockSessionUser, secondSessionUser);
+
+        spySessionService.removeUserFromSession(mockedSessionUsers, mockSessionUser.getId());
+
+        verify(sessionRepository).flush();
+        verify(sessionUserRepository, times(2)).save(any(SessionUser.class));
+        assertEquals(secondSessionUser.getUserRole(), UserSessionRole.OWNER);
+    }
 
 }
