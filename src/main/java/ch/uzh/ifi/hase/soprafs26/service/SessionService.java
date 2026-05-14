@@ -264,8 +264,9 @@ public class SessionService {
                 break;
             }
         }
-        if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId() == userId) {
-            deleteSession(sessionUsers.get(1).getSession());
+        if (sessionUsers.size() == 1 && foundSessionUser.getUser().getId() == userId
+                && foundSessionUser.getUserRole() == UserSessionRole.OWNER) {
+            deleteSession(sessionUsers.get(0).getSession());
         } else if (sessionUsers.size() == 1 && foundSessionUser != null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not part of this session.");
         } else {
