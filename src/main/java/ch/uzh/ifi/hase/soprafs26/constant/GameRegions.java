@@ -13,8 +13,16 @@ public class GameRegions {
 
         private static final Map<String, List<SearchRegion>> REGIONS = Map.ofEntries(
                         Map.entry("Alps", List.of(
-                                        new SearchRegion("AlpsBoxNorth", 5.943604, 46.057976, 16.677246, 48.180734),
-                                        new SearchRegion("AlpsBoxSouth", 5.185547, 43.620213, 7.558594, 46.111319))),
+                                        new SearchRegion("AlpsZermatt", 6.855469,45.863505,8.000793,46.081050),
+                                        new SearchRegion("AlpsCourmayeur", 6.803284,45.493831,7.110901,45.861311),
+                                        new SearchRegion("AlpsBessans", 6.470947,45.167528,7.461090,45.455854),
+                                        new SearchRegion("AlpsArvieux", 6.580811,44.386681,7.152100,45.176255),
+                                        new SearchRegion("AlpsOberwald", .520142,46.451095,8.517151,46.576797),
+                                        new SearchRegion("AlpsStMoritz", 9.096680,46.344060,10.328522,46.623004),
+                                        new SearchRegion("AlpsSamaun", 9.729767,46.741731,11.336517,46.921188),
+                                        new SearchRegion("AlpsArlberg", 10.065536,46.929633,10.464478,47.265722),
+                                        new SearchRegion("AlpsStubai", 11.063232,46.929164,11.412735,47.192974),
+                                        new SearchRegion("AlpsTauern", 12.547073,47.042986,13.046951,47.191248))),
                         Map.entry("NewZealandAlps",
                                         List.of(new SearchRegion("NewZealandAlpsQueensTown", 166.931763, -46.000200,
                                                         169.650879, -44.225486),
