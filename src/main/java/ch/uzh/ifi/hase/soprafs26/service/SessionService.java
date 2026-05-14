@@ -237,7 +237,7 @@ public class SessionService {
         try {
             return UUID.fromString(sessionId);
         } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid session id");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid session id");
         }
     }
 
