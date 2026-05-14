@@ -129,11 +129,9 @@ public class SessionServiceTest {
     @Test
     void testFindSessionIdByShortId_valid() {
         String mockSessionId = "aaaaaaaa-aaa1-aaa2-aaa3-aaaaaaaaaaaa";
-
         mockSession.setId(UUID.fromString(mockSessionId));
         List<Session> mockSessions = List.of(mockSession);
         when(sessionRepository.findAll()).thenReturn(mockSessions);
-
         String foundSessionId = sessionService.findSessionIdByShortId("a123a");
         assertEquals(mockSessionId, foundSessionId);
     }
@@ -141,11 +139,9 @@ public class SessionServiceTest {
     @Test
     void testFindSessionIdByShortId_invalid() {
         String mockSessionId = "aaaaaaaa-aaa1-aaa2-aaa3-aaaaaaaaaaaa";
-
         mockSession.setId(UUID.fromString(mockSessionId));
         List<Session> mockSessions = List.of(mockSession);
         when(sessionRepository.findAll()).thenReturn(mockSessions);
-
         String foundSessionId = sessionService.findSessionIdByShortId("99999");
         assertNull(foundSessionId);
     }
