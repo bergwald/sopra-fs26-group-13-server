@@ -67,6 +67,26 @@ public class SessionService {
         return session;
     }
 
+    public String shortenUUID(String uuid) {
+        String[] parts = uuid.split("-");
+        StringBuilder result = new StringBuilder();
+        for (String part : parts) {
+            result.append(part.charAt(part.length() - 1));
+        }
+        return result.toString();
+    }
+
+    public String findSessionIdByShortId(String shortId) {
+        List<Session> sessions = getAllSessions();
+        for (Session session : sessions) {
+            String shortendSessionId = shortenUUID(session.getIdAsString());
+            if (shortendSessionId.equals(shortId)) {
+                return session.getIdAsString();
+            }
+        }
+        return null;
+    }
+
     public Session userJoinSession(Long userId, UUID sessionId, UserSessionRole userSessionRole)
             throws ResponseStatusException {
         Session currentSession = this.sessionRepository.findById(sessionId);
