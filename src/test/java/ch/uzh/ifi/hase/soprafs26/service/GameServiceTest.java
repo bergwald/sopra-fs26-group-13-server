@@ -151,7 +151,7 @@ public class GameServiceTest {
 	}
 
 	@Test
-	public void saveScore_invalidSessionId_throwsBadRequest() {
+	public void saveScore_invalidSessionId_throwsNotFound() {
 		gameDataRepository = mock(GameDataRepository.class);
 		sessionUserRepository = mock(SessionUserRepository.class);
 		sessionRepository = mock(SessionRepository.class);
@@ -159,7 +159,7 @@ public class GameServiceTest {
 
 		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
 				() -> gameService.saveScore(1L, 5, "not-a-uuid"));
-		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+		assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
 	}
 
 	@Test
