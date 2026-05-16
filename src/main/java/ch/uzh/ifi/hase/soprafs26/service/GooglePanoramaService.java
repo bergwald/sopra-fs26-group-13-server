@@ -121,9 +121,6 @@ public class GooglePanoramaService {
     private GooglePanoramaCandidate tryFindPanoramaInRegion(SearchRegion region, String apiKey) {
         for (int attempt = 0; attempt < maxAttemptsPerRegion; attempt++) {
             SamplePoint point = randomPoint(region);
-            if (!passesElevationThreshold(point, apiKey)) {
-                continue;
-            }
 
             GooglePanoramaCandidate candidate = lookupPanorama(point, apiKey);
             if (candidate != null) {
