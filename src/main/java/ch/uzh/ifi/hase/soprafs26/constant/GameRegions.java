@@ -17,7 +17,7 @@ public class GameRegions {
                                         new SearchRegion("AlpsCourmayeur", 6.803284, 45.493831, 7.110901, 45.861311),
                                         new SearchRegion("AlpsBessans", 6.470947, 45.167528, 7.461090, 45.455854),
                                         new SearchRegion("AlpsArvieux", 6.580811, 44.386681, 7.152100, 45.176255),
-                                        new SearchRegion("AlpsOberwald", .520142, 46.451095, 8.517151, 46.576797),
+                                        new SearchRegion("AlpsOberwald", 6.520142, 46.451095, 8.517151, 46.576797),
                                         new SearchRegion("AlpsStMoritz", 9.096680, 46.344060, 10.328522, 46.623004),
                                         new SearchRegion("AlpsSamaun", 9.729767, 46.741731, 11.336517, 46.921188),
                                         new SearchRegion("AlpsArlberg", 10.065536, 46.929633, 10.464478, 47.265722),
