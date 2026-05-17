@@ -138,6 +138,9 @@ public class GooglePanoramaService {
     }
 
     private boolean passesElevationThreshold(SamplePoint point, String apiKey) {
+        /* Currently deprecated. 
+        We avoid the using this endpoint with more specific regions bounding boxes!
+        */
         URI requestUri = URI.create(elevationEndpoint
                 + "?locations=" + encodeCoordinatePair(point.latitude(), point.longitude())
                 + "&key=" + encodeValue(apiKey));
