@@ -13,24 +13,49 @@ public class GameRegions {
 
         private static final Map<String, List<SearchRegion>> REGIONS = Map.ofEntries(
                         Map.entry("Alps", List.of(
-                                        new SearchRegion("AlpsBoxNorth", 5.943604, 46.057976, 16.677246, 48.180734),
-                                        new SearchRegion("AlpsBoxSouth", 5.185547, 43.620213, 7.558594, 46.111319))),
-                        Map.entry("NewZealandAlps",
-                                        List.of(new SearchRegion("NewZealandAlpsQueensTown", 166.931763, -46.000200,
-                                                        169.650879, -44.225486),
-                                                        new SearchRegion("NewZealandAlpsUp", 170.837402, -43.268105,
-                                                                        172.880859, -42.355545))),
-                        Map.entry("Himalaya",
-                                        List.of(new SearchRegion("HimalayaCentralRight", 77.783203, 26.800268,
-                                                        103.842774, 33.615246),
-                                                        new SearchRegion("HimalayaCentralRight", 67.620850, 33.356387,
-                                                                        78.629150, 39.273202))),
-                        Map.entry("JapaneseAlps",
-                                        List.of(new SearchRegion("JapaneseAlps", 137.362061, 35.304546, 139.394531,
-                                                        36.923664))),
+                                        new SearchRegion("AlpsZermatt", 6.855469, 45.863505, 8.000793, 46.081050),
+                                        new SearchRegion("AlpsCourmayeur", 6.803284, 45.493831, 7.110901, 45.861311),
+                                        new SearchRegion("AlpsBessans", 6.470947, 45.167528, 7.461090, 45.455854),
+                                        new SearchRegion("AlpsArvieux", 6.580811, 44.386681, 7.152100, 45.176255),
+                                        new SearchRegion("AlpsOberwald", 6.520142, 46.451095, 8.517151, 46.576797),
+                                        new SearchRegion("AlpsStMoritz", 9.096680, 46.344060, 10.328522, 46.623004),
+                                        new SearchRegion("AlpsSamaun", 9.729767, 46.741731, 11.336517, 46.921188),
+                                        new SearchRegion("AlpsArlberg", 10.065536, 46.929633, 10.464478, 47.265722),
+                                        new SearchRegion("AlpsStubai", 11.063232, 46.929164, 11.412735, 47.192974),
+                                        new SearchRegion("AlpsTauern", 12.547073, 47.042986, 13.046951, 47.191248))),
+
+                        Map.entry("NewZealandAlps", List.of(
+                                        new SearchRegion("NewZealandFiordlandNationalPark", 166.445618,-46.269141,167.942505,-44.934046),
+                                        new SearchRegion("NewZealandMilfordSound", 168.150559,-44.895956,169.458618,-44.260686),
+                                        new SearchRegion("NewZealandMountAspiringNationalPark", 168.326683,-44.860813,169.617920,-43.878306),
+                                        new SearchRegion("NewZealandAorakiMountCookNationalPark", 169.922619,-43.838550,171.644897,-43.209256),
+                                        new SearchRegion("NewZealandArthursPassNationalPark", 171.124334,-43.263072,172.397461,-42.350459),
+                                        new SearchRegion("NewZealandNelsonLakesNationalPark", 172.166748,-42.581403,173.784485,-41.681114),
+                                        new SearchRegion("NewZealandKahurangiNationalPark", 172.074738,-41.720211,172.875366,-40.726500))),
+
+                        Map.entry("Himalaya", List.of(
+                                        new SearchRegion("HimalayaBhutan", 86.113586, 26.927923, 92.370300, 28.963940),
+                                        new SearchRegion("HimalayaCentralNepal", 83.309326, 27.955591, 86.088867, 29.104177),
+                                        new SearchRegion("HimalayaWestNepal", 80.612183, 28.921631, 84.155273, 30.600094),
+                                        new SearchRegion("HimalayaNorthEastIndia", 78.211670, 30.656816, 81.145020, 33.751748),
+                                        new SearchRegion("HimalayaPakistan", 74.915771, 33.824794, 78.239136, 37.579413))),
+
+                        Map.entry("JapaneseAlps", List.of(
+                                        new SearchRegion("JapaneseAlps", 137.395020, 35.621582, 137.817993, 36.752089),
+                                        new SearchRegion("JapaneseAlpsNorth", 138.034973, 35.194743, 138.342590, 35.807114),
+                                        new SearchRegion("JapaneseAlpsMtFuji", 138.675613, 35.327731, 138.789253, 35.389610))),
+
                         Map.entry("Andes", List
-                                        .of(new SearchRegion("Andes", -71.674805, -37.510203, -65.346680,
-                                                        -15.103670))));
+                                        .of(
+                                        new SearchRegion("Andes1", -76.376953,2.376712,-74.882813,7.037022),
+                                        new SearchRegion("Andes2", -73.674316,4.720670,-72.180176,8.99361),
+                                        new SearchRegion("Andes3", -79.101563,-3.318119,-77.915039,0.724489),
+                                        new SearchRegion("Andes4", -79.453125,-7.372414,-78.266602,-3.329805),
+                                        new SearchRegion("Andes5", -78.090820,-10.665709,-75.585938,-7.950579),
+                                        new SearchRegion("Andes6", -76.113281,-14.541088,-73.850098,-12.188961),
+                                        new SearchRegion("Andes7", -74.146729,-16.319964,-69.147949,-13.682901),
+                                        new SearchRegion("Andes8", -67.280273,-26.352639,-64.248047,-17.782692),
+                                        new SearchRegion("Andes9", -70.817871,-36.156949,-68.466797,-25.563493))));
 
         public static List<SearchRegion> getRegions(String regionName) {
                 return REGIONS.getOrDefault(regionName, List.of());
