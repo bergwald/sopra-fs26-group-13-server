@@ -47,8 +47,16 @@ public class GameRegions {
                                                         new SearchRegion("JapaneseAlpsMtFuji", 138.675613, 35.327731,
                                                                         138.789253, 35.389610))),
                         Map.entry("Andes", List
-                                        .of(new SearchRegion("Andes", -71.674805, -37.510203, -65.346680,
-                                                        -15.103670))));
+                                        .of(
+                                        new SearchRegion("Andes1", -76.376953,2.376712,-74.882813,7.037022),
+                                        new SearchRegion("Andes2", -73.674316,4.720670,-72.180176,8.99361),
+                                        new SearchRegion("Andes3", -79.101563,-3.318119,-77.915039,0.724489),
+                                        new SearchRegion("Andes4", -79.453125,-7.372414,-78.266602,-3.329805),
+                                        new SearchRegion("Andes5", -78.090820,-10.665709,-75.585938,-7.950579),
+                                        new SearchRegion("Andes6", -76.113281,-14.541088,-73.850098,-12.188961),
+                                        new SearchRegion("Andes7", -74.146729,-16.319964,-69.147949,-13.682901),
+                                        new SearchRegion("Andes8", -67.280273,-26.352639,-64.248047,-17.782692),
+                                        new SearchRegion("Andes9", -70.817871,-36.156949,-68.466797,-25.563493))));
 
         public static List<SearchRegion> getRegions(String regionName) {
                 return REGIONS.getOrDefault(regionName, List.of());
