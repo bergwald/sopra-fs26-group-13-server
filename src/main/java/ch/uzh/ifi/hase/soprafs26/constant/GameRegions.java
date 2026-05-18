@@ -23,29 +23,28 @@ public class GameRegions {
                                         new SearchRegion("AlpsArlberg", 10.065536, 46.929633, 10.464478, 47.265722),
                                         new SearchRegion("AlpsStubai", 11.063232, 46.929164, 11.412735, 47.192974),
                                         new SearchRegion("AlpsTauern", 12.547073, 47.042986, 13.046951, 47.191248))),
-                        Map.entry("NewZealandAlps",
-                                        List.of(new SearchRegion("NewZealandAlpsQueensTown", 166.931763, -46.000200,
-                                                        169.650879, -44.225486),
-                                                        new SearchRegion("NewZealandAlpsUp", 170.837402, -43.268105,
-                                                                        172.880859, -42.355545))),
-                        Map.entry("Himalaya",
-                                        List.of(new SearchRegion("HimalayaBhutan", 86.113586, 26.927923, 92.370300,
-                                                        28.963940),
-                                                        new SearchRegion("HimalayaCentralNepal", 83.309326, 27.955591,
-                                                                        86.088867, 29.104177),
-                                                        new SearchRegion("HimalayaWestNepal", 80.612183, 28.921631,
-                                                                        84.155273, 30.600094),
-                                                        new SearchRegion("HimalayaNorthEastIndia", 78.211670, 30.656816,
-                                                                        81.145020, 33.751748),
-                                                        new SearchRegion("HimalayaPakistan", 74.915771, 33.824794,
-                                                                        78.239136, 37.579413))),
-                        Map.entry("JapaneseAlps",
-                                        List.of(new SearchRegion("JapaneseAlps", 137.395020, 35.621582, 137.817993,
-                                                        36.752089),
-                                                        new SearchRegion("JapaneseAlpsNorth", 138.034973, 35.194743,
-                                                                        138.342590, 35.807114),
-                                                        new SearchRegion("JapaneseAlpsMtFuji", 138.675613, 35.327731,
-                                                                        138.789253, 35.389610))),
+
+                        Map.entry("NewZealandAlps", List.of(
+                                        new SearchRegion("NewZealandFiordlandNationalPark", 166.445618,-46.269141,167.942505,-44.934046),
+                                        new SearchRegion("NewZealandMilfordSound", 168.150559,-44.895956,169.458618,-44.260686),
+                                        new SearchRegion("NewZealandMountAspiringNationalPark", 168.326683,-44.860813,169.617920,-43.878306),
+                                        new SearchRegion("NewZealandAorakiMountCookNationalPark", 169.922619,-43.838550,171.644897,-43.209256),
+                                        new SearchRegion("NewZealandArthursPassNationalPark", 171.124334,-43.263072,172.397461,-42.350459),
+                                        new SearchRegion("NewZealandNelsonLakesNationalPark", 172.166748,-42.581403,173.784485,-41.681114),
+                                        new SearchRegion("NewZealandKahurangiNationalPark", 172.074738,-41.720211,172.875366,-40.726500))),
+
+                        Map.entry("Himalaya", List.of(
+                                        new SearchRegion("HimalayaBhutan", 86.113586, 26.927923, 92.370300, 28.963940),
+                                        new SearchRegion("HimalayaCentralNepal", 83.309326, 27.955591, 86.088867, 29.104177),
+                                        new SearchRegion("HimalayaWestNepal", 80.612183, 28.921631, 84.155273, 30.600094),
+                                        new SearchRegion("HimalayaNorthEastIndia", 78.211670, 30.656816, 81.145020, 33.751748),
+                                        new SearchRegion("HimalayaPakistan", 74.915771, 33.824794, 78.239136, 37.579413))),
+
+                        Map.entry("JapaneseAlps", List.of(
+                                        new SearchRegion("JapaneseAlps", 137.395020, 35.621582, 137.817993, 36.752089),
+                                        new SearchRegion("JapaneseAlpsNorth", 138.034973, 35.194743, 138.342590, 35.807114),
+                                        new SearchRegion("JapaneseAlpsMtFuji", 138.675613, 35.327731, 138.789253, 35.389610))),
+
                         Map.entry("Andes", List
                                         .of(
                                         new SearchRegion("Andes1", -76.376953,2.376712,-74.882813,7.037022),
