@@ -101,7 +101,7 @@ public class GooglePanoramaService {
             throw new ResponseStatusException(NOT_FOUND, "No panorama search regions are configured.");
         }
         List<Integer> randomIndices = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 8; i++) {
             randomIndices.add(random.nextInt(searchRegions.size()));
         }
 
