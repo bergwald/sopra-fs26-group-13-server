@@ -1,133 +1,113 @@
-# SoPra RESTful Service Template FS26
+# MountainGuessr Server
 
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=bergwald_sopra-fs26-group-13-server)](https://sonarcloud.io/summary/new_code?id=bergwald_sopra-fs26-group-13-server)
 
-## Deployment
+## Introduction
 
-Backend deployment URL: https://sopra-fs26-group-13-server.oa.r.appspot.com
+MountainGuessr is a GeoGuessr-style web game built for the Software Engineering Praktikum course at UZH. Players explore a Google Street View panorama, place a guess on a world map, and receive a score based on the distance to the real location. The server exposes the REST API that powers registration, login, profile data, game sessions, multiplayer lobbies, round data, guess evaluation, and score persistence.
 
-Frontend deployment URL: https://sopra-fs26-group-13-client.vercel.app
+The motivation is to make a fun multiplayer game about recognising mountains.
 
-## DEV Commands
+Deployed backend: https://sopra-fs26-group-13-server.oa.r.appspot.com  
+Deployed frontend: https://sopra-fs26-group-13-client.vercel.app
 
-`build` + `bootRun` to build the app and launch a development server. The dev server run at `localhost:8080`.
+## Technologies
 
-Run all tests by running `bash gradlew test` (or `Tasks > verification > test` through the VSCode Gradle extension). 
+- Java 17
+- Spring Boot 4 with Spring Web MVC
+- Spring Data JPA and Hibernate
+- H2 in-memory database
+- Google Maps APIs and Google Cloud AppEngine
 
-## Local Secrets
+## High-Level Components
 
-The application loads a gitignored `local.properties` file automatically at startup.
+- [Application entry point](src/main/java/ch/uzh/ifi/hase/soprafs26/Application.java): starts the Spring Boot application.
+- [REST controllers](src/main/java/ch/uzh/ifi/hase/soprafs26/controller): expose the public API. [UserController](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/UserController.java) handles accounts and authentication, [SessionController](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/SessionController.java) handles session creation and multiplayer membership, and [GameController](src/main/java/ch/uzh/ifi/hase/soprafs26/controller/GameController.java) serves round data and receives guesses.
+- [Service layer](src/main/java/ch/uzh/ifi/hase/soprafs26/service): contains business logic. [UserService](src/main/java/ch/uzh/ifi/hase/soprafs26/service/UserService.java) validates users and tokens, [SessionService](src/main/java/ch/uzh/ifi/hase/soprafs26/service/SessionService.java) manages sessions and rounds, [GameService](src/main/java/ch/uzh/ifi/hase/soprafs26/service/GameService.java) stores scores and guesses, and [GuessEvaluationService](src/main/java/ch/uzh/ifi/hase/soprafs26/service/GuessEvaluationService.java) calculates distance and score.
+- [Persistence layer](src/main/java/ch/uzh/ifi/hase/soprafs26/repository): JPA repositories store [users](src/main/java/ch/uzh/ifi/hase/soprafs26/entity/User.java), sessions, session users, and per-round game data.
+- [DTO and mapping layer](src/main/java/ch/uzh/ifi/hase/soprafs26/rest): DTOs define the REST request/response shapes, while [DTOMapper](src/main/java/ch/uzh/ifi/hase/soprafs26/rest/mapper/DTOMapper.java) converts between API objects and JPA entities.
+- [Google panorama integration](src/main/java/ch/uzh/ifi/hase/soprafs26/service/GooglePanoramaService.java): finds usable Street View panoramas for configured regions.
 
-Example:
+The controllers validate HTTP input and authorization, then delegate to services. Services enforce game rules and use repositories for persistence. DTOs keep the API shape separate from database entities.
+
+## Launch & Deployment
+
+### Prerequisites
+
+- Java 17
+- Gradle wrapper from this repository
+- Optional Google Maps server API key for real panorama lookup
+- No external database is required for local development; the app uses an in-memory H2 database.
+
+### Local Development
+
+Create a gitignored `local.properties` file in the server project root when using Google Maps locally:
 
 ```properties
 google.maps.api-key=GOOGLE_MAPS_SERVER_API_KEY
 ```
 
-This overrides the empty default in `application.properties` without committing secrets to Git.
+Build the application:
 
-## Notes
-
-### Java Persistence API (JPA)
-
-JPA allows us to define a relational schema and perform operations on the database without having to tediously write SQL code.
-
-- Provides interfaces to work with data abstraction
-- Helps with Object-Relational-Mapping (ORM)
-- Allows you to work directly with objects rather
-than with SQL statements
-- Helps you with the storing, retrieving, updating
-and mapping of objects
-
-JPA is an ORM (object relational mapping) standard/interface. The actual ORM implementation is done by a "JPA provider" such as Hibernate/EclipseLink/OpenJPA.
-
-Mapping between database tables and objects is defined via persistence metadata. Metadata can either be via annotations in the Java class or defined in an XML file.
-
-Example in Java class:
-
-```java
-// entity maps to a table
-@Entity
-public class User implements Serializable {
-
-    // generated primary key
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false, unique = true)
-    private String username;
-}
+```bash
+./gradlew build
 ```
 
-Unidirectional relationship: only one side "knows" about the other.
+Start the development server:
 
-Bidirectional relationship: both sides "know" about each other. The association can be navigated in both directions.
-
-```java
-@Entity
-public class Scoreboard {
-
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    // one-directional mapping
-    @OneToOne
-    private Game game;
-
-    // bidirectional mapping
-    // the other table also needs to include the "mappedBy" argument
-    @OneToOne(mappedBy = "scoreBoard")
-    private Game game;
-}
+```bash
+./gradlew bootRun
 ```
 
-CRUD operations:
+If the wrapper is not executable on your system, use:
 
-```java
-userRepository.save(newUser);
-userRepository.findById(userId);
-userRepository.delete(user);
-userRepository.findAll(newUser);
+```bash
+bash gradlew bootRun
 ```
 
-### Java Spring Boot REST API
+The server runs at http://localhost:8080.
 
-**Spring** is a Java framework for building applications, especially backend/enterprise apps.
+### Tests and Checks
 
-**Spring Boot** is built on top of Spring and is meant to make starting and running Spring apps much faster.
+Run all tests:
 
-Spring Boot = Spring + sensible defaults + auto-setup
+```bash
+./gradlew test
+```
 
-Core idea of Spring: *dependency injection / inversion of control* (DI / IoC): Spring manages object creation and wiring.
+Run tests with coverage report generation:
 
-Classic Spring app structure:
+```bash
+./gradlew test jacocoTestReport
+```
 
-- **Controller**: HTTP layer; handles HTTP requests/responses.
-- **Service**: business logic, validation, transactions.
-- **Repository**: database interaction.
-- **Entity**: a class mapped to a database table.
-- **Data Transfer Object (DTO)**: class used to transfer data between layers, especially for API input/output.
-- **Mapper**: converts between types (usually Entity <-> DTO).
+Build the deployable jar:
 
-### Gradle
+```bash
+./gradlew bootJar
+```
 
-Gradle is a build automation system. It:
+### Releases
 
-- compiles code,
-- runs tests,
-- assembles docs,
-- packages and runs applications, and
-- performs deployments.
+Pushes to `main` trigger the App Engine deployment workflow in [.github/workflows/main.yml](.github/workflows/main.yml). The workflow uses `GCP_SERVICE_CREDENTIALS` and deploys the `app.yaml` deliverable.
 
-Existing Gradle tasks in this project:
+## Roadmap
 
-- `build`
-- `bootRun`
+- Replace the local H2 setup with a persistent production database and migration tooling.
+- Improve multiplayer synchronization with a push-based mechanism such as WebSockets or server-sent events.
+- Add panorama caching and stronger region-selection controls to reduce Google Maps API calls and improve location quality.
+
+## Authors and Acknowledgment
+
+Authors:
+
+- @bergwald (Thomas)
+- @PAKaeser (Patricia)
+- @juliand924 (Julian)
+- @plaiimade (Robin)
+
+This project was created for the University of Zurich *Software Engineering Praktikum* course. We thank Yunyi Zhang and the SoPra team at UZH for their supervision, support, and guidance.
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
